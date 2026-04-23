@@ -23,7 +23,7 @@ const [remarks, setRemarks] = useState({});
   const fetchIssues = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:5000/api/issues/worker",
+        "/api/issues/worker",
         {
           headers: { Authorization: token },
         }
@@ -40,7 +40,7 @@ const [remarks, setRemarks] = useState({});
   const updateStatus = async (id, status) => {
     try {
       await axios.put(
-        `http://localhost:5000/api/issues/${id}`,
+        `/api/issues/${id}`,
         { status },
         {
           headers: { Authorization: token },
@@ -63,7 +63,7 @@ const submitWork = async (id) => {
     formData.append("remarks", remarks[id] || "");
 
     await axios.put(
-      `http://localhost:5000/api/issues/complete/${id}`,
+      `/api/issues/complete/${id}`,
       formData,
       {
         headers: {
@@ -110,11 +110,11 @@ const submitWork = async (id) => {
             {/* 🖼 IMAGE */}
             {issue.image && (
               <img
-                src={`http://localhost:5000/uploads/${issue.image}`}
+                src={`/api/uploads/${issue.image}`}
                 alt="issue"
                 style={styles.image}
                 onClick={() =>
-                  setPreviewImage(`http://localhost:5000/uploads/${issue.image}`)
+                  setPreviewImage(`/api/uploads/${issue.image}`)
                 }
               />
             )}

@@ -34,7 +34,7 @@ export default function MapView() {
   }, []);
 
   const fetchIssues = async () => {
-    const res = await axios.get("http://localhost:5000/api/issues", {
+    const res = await axios.get("/api/issues", {
       headers: {
         Authorization: localStorage.getItem("token"),
       },
@@ -83,7 +83,7 @@ export default function MapView() {
 
                   {i.image && (
                     <img
-                      src={`http://localhost:5000/${i.image}`}
+                      src={`/api/${i.image}`}
                       alt="issue"
                       style={styles.image}
                     />
@@ -107,7 +107,7 @@ export default function MapView() {
 
           {selected.image && (
             <img
-              src={`http://localhost:5000/uploads/${selected.image}`}
+              src={`/api/uploads/${selected.image}`}
               alt=""
               style={{ width: "100%", borderRadius: "10px" }}
             />

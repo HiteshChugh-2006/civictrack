@@ -73,7 +73,7 @@ export default function CreateIssue() {
     if (image) formData.append("image", image);
 
     try {
-      await axios.post("http://localhost:5000/api/issues", formData, {
+      await axios.post("/api/issues", formData, {
         headers: {
           Authorization: localStorage.getItem("token"),
         },

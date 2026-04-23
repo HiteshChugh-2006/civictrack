@@ -23,11 +23,11 @@ export default function AdminDashboard() {
 
   const fetchData = async () => {
     try {
-      const issuesRes = await axios.get("http://localhost:5000/api/issues", {
+      const issuesRes = await axios.get("/api/issues", {
         headers: { Authorization: token },
       });
 
-      const workersRes = await axios.get("http://localhost:5000/api/users/workers", {
+      const workersRes = await axios.get("/api/users/workers", {
         headers: { Authorization: token },
       });
 
@@ -46,7 +46,7 @@ export default function AdminDashboard() {
 
     try {
       await axios.put(
-        `http://localhost:5000/api/issues/assign/${id}`,
+        `/api/issues/assign/${id}`,
         { workerId },
         { headers: { Authorization: token } }
       );
@@ -62,7 +62,7 @@ export default function AdminDashboard() {
   const updateStatus = async (id, status) => {
     try {
       await axios.put(
-        `http://localhost:5000/api/issues/${id}`,
+        `/api/issues/${id}`,
         { status },
         { headers: { Authorization: token } }
       );
@@ -137,11 +137,11 @@ export default function AdminDashboard() {
               {/* 🖼 IMAGE */}
               {issue.image && (
                 <img
-                  src={`http://localhost:5000/uploads/${issue.image}`}
+                  src={`/api/uploads/${issue.image}`}
                   alt="issue"
                   style={styles.image}
                   onClick={() =>
-                    setPreviewImage(`http://localhost:5000/uploads/${issue.image}`)
+                    setPreviewImage(`/api/uploads/${issue.image}`)
                   }
                 />
               )}
@@ -150,7 +150,7 @@ export default function AdminDashboard() {
   <>
     <p style={{ marginTop: "10px" }}>📸 Completed Work:</p>
     <img
-      src={`http://localhost:5000/${issue.completionImage}`}
+      src={`/api/${issue.completionImage}`}
       style={styles.image}
     />
   </>

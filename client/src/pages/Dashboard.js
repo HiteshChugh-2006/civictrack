@@ -29,7 +29,7 @@ export default function Dashboard() {
 
   const fetchIssues = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/issues", {
+      const res = await axios.get("/api/issues", {
         headers: {
           Authorization: localStorage.getItem("token"),
         },

@@ -17,7 +17,7 @@ export default function Issues() {
   const fetchIssues = async () => {
     const user = JSON.parse(localStorage.getItem("user"));
 
-    const res = await axios.get("http://localhost:5000/api/issues", {
+    const res = await axios.get("/api/issues", {
       headers: {
         Authorization: localStorage.getItem("token"),
       },
@@ -31,7 +31,7 @@ export default function Issues() {
   };
 
   const fetchWorkers = async () => {
-    const res = await axios.get("http://localhost:5000/api/users/workers", {
+    const res = await axios.get("/api/users/workers", {
       headers: {
         Authorization: localStorage.getItem("token"),
       },
@@ -41,7 +41,7 @@ export default function Issues() {
 
   const updateStatus = async (id, status) => {
     await axios.put(
-      `http://localhost:5000/api/issues/${id}`,
+      `/api/issues/${id}`,
       { status },
       {
         headers: {
@@ -56,7 +56,7 @@ export default function Issues() {
     if (!workerId) return;
 
     await axios.put(
-      `http://localhost:5000/api/issues/assign/${id}`,
+      `/api/issues/assign/${id}`,
       { workerId },
       {
         headers: {
@@ -87,7 +87,7 @@ export default function Issues() {
           {/* 🖼 ORIGINAL IMAGE */}
           {issue.image && (
             <img
-              src={`http://localhost:5000/uploads/${issue.image}`}
+              src={`/api/uploads/${issue.image}`}
               style={imageStyle}
             />
           )}
@@ -97,7 +97,7 @@ export default function Issues() {
             <>
               <p style={{ marginTop: "10px" }}>📸 Completed Work:</p>
               <img
-                src={`http://localhost:5000/${issue.completionImage}`}
+                src={`/api/${issue.completionImage}`}
                 style={imageStyle}
               />
             </>
