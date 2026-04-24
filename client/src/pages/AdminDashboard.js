@@ -16,9 +16,6 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchData();
-
-    const interval = setInterval(fetchData, 5000);
-    return () => clearInterval(interval);
   }, []);
 
   const fetchData = async () => {
@@ -40,41 +37,28 @@ export default function AdminDashboard() {
     }
   };
 
-  // ✅ ASSIGN WORKER
   const assignWorker = async (id, workerId) => {
     if (!workerId) return;
 
-    try {
-      await axios.put(
-        `/api/issues/assign/${id}`,
-        { workerId },
-        { headers: { Authorization: token } }
-      );
+    await axios.put(
+      `/api/issues/assign/${id}`,
+      { workerId },
+      { headers: { Authorization: token } }
+    );
 
-      fetchData();
-    } catch (err) {
-      console.log(err);
-      alert("Worker assign failed ❌");
-    }
+    fetchData();
   };
 
-  // ✅ UPDATE STATUS
   const updateStatus = async (id, status) => {
-    try {
-      await axios.put(
-        `/api/issues/${id}`,
-        { status },
-        { headers: { Authorization: token } }
-      );
+    await axios.put(
+      `/api/issues/${id}`,
+      { status },
+      { headers: { Authorization: token } }
+    );
 
-      fetchData();
-    } catch (err) {
-      console.log(err);
-      alert("Status update failed ❌");
-    }
+    fetchData();
   };
 
-  // 🔍 FILTER
   const filteredIssues = issues
     .filter(i => filter === "all" || i.status === filter)
     .filter(i => i.title.toLowerCase().includes(search.toLowerCase()));
@@ -85,12 +69,12 @@ export default function AdminDashboard() {
 
   return (
     <div style={styles.layout}>
-      <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} role="admin" />
+      <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} />
       <Navbar setIsOpen={setIsOpen} />
 
       <div style={{
         ...styles.content,
-        marginLeft: isOpen ? "220px" : "0"
+        marginLeft: isOpen ? "240px" : "0"
       }}>
 
         <h1>🧑‍💼 Admin Control Panel</h1>
@@ -127,40 +111,40 @@ export default function AdminDashboard() {
 
               <h3>{issue.title}</h3>
               <p>{issue.description}</p>
-              
 
-              {/* 👤 REPORTED BY (NEW) */}
               <p style={{ fontSize: "13px", color: "#555" }}>
                 👤 Reported by: <b>{issue.createdBy?.name || "Unknown"}</b>
               </p>
 
-              {/* 🖼 IMAGE */}
+              {/* 🖼 USER IMAGE */}
               {issue.image && (
                 <img
-                  src={`/api/uploads/${issue.image}`}
+                  src={`/${issue.image}`}
                   alt="issue"
                   style={styles.image}
-                  onClick={() =>
-                    setPreviewImage(`/api/uploads/${issue.image}`)
-                  }
+                  onClick={() => setPreviewImage(`/${issue.image}`)}
                 />
               )}
-              {/* AFTER COMPLETION */}
-{issue.completionImage && (
-  <>
-    <p style={{ marginTop: "10px" }}>📸 Completed Work:</p>
-    <img
-      src={`/api/${issue.completionImage}`}
-      style={styles.image}
-    />
-  </>
-)}
 
-{issue.remarks && (
-  <p style={{ fontSize: "13px", marginTop: "5px" }}>
-    📝 {issue.remarks}
-  </p>
-)}
+              {/* 📸 COMPLETED IMAGE */}
+              {issue.completionImage && (
+                <>
+                  <p style={{ marginTop: "10px" }}>📸 Completed Work:</p>
+                  <img
+                    src={`/${issue.completionImage}`}
+                    alt="completed"
+                    style={styles.image}
+                    onClick={() => setPreviewImage(`/${issue.completionImage}`)}
+                  />
+                </>
+              )}
+
+              {/* 📝 REMARKS */}
+              {issue.remarks && (
+                <p style={styles.remarks}>
+                  📝 {issue.remarks}
+                </p>
+              )}
 
               <div style={styles.meta}>
                 <StatusBadge status={issue.status} />
@@ -210,7 +194,7 @@ export default function AdminDashboard() {
 }
 
 
-// 🔹 COMPONENTS
+/* 🔹 COMPONENTS */
 
 function StatCard({ title, value, color }) {
   return (
@@ -245,36 +229,16 @@ function StatusBadge({ status }) {
 }
 
 
-
-// 🎨 STYLES
+/* 🎨 STYLES */
 
 const styles = {
   layout: { display: "flex", minHeight: "100vh", background: "#f1f5f9" },
 
   content: { marginTop: "60px", padding: "30px", width: "100%" },
 
-  previewOverlay: {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    background: "rgba(0,0,0,0.8)",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 9999
-  },
-
-  previewImage: {
-    maxWidth: "90%",
-    maxHeight: "90%",
-    borderRadius: "10px"
-  },
-
   stats: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(180px,1fr))",
+    gridTemplateColumns: "repeat(3, 1fr)",
     gap: "15px",
     marginBottom: "20px"
   },
@@ -283,7 +247,8 @@ const styles = {
     background: "white",
     padding: "15px",
     borderRadius: "10px",
-    boxShadow: "0 5px 15px rgba(0,0,0,0.08)"
+    boxShadow: "0 5px 15px rgba(0,0,0,0.08)",
+    textAlign: "center"
   },
 
   topBar: {
@@ -328,6 +293,14 @@ const styles = {
     cursor: "pointer"
   },
 
+  remarks: {
+    fontSize: "13px",
+    marginTop: "5px",
+    background: "#f1f5f9",
+    padding: "8px",
+    borderRadius: "6px"
+  },
+
   meta: {
     display: "flex",
     justifyContent: "space-between",
@@ -338,5 +311,24 @@ const styles = {
     display: "flex",
     gap: "10px",
     marginTop: "15px"
+  },
+
+  previewOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    background: "rgba(0,0,0,0.8)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 9999
+  },
+
+  previewImage: {
+    maxWidth: "90%",
+    maxHeight: "90%",
+    borderRadius: "10px"
   }
 };
