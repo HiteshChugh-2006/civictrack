@@ -2,7 +2,7 @@ import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 import Chatbot from "../components/Chatbot";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import API from "../api"; // ✅ FIXED
 
 export default function WorkerDashboard() {
   const [isOpen, setIsOpen] = useState(true);
@@ -13,8 +13,6 @@ export default function WorkerDashboard() {
   const [selectedImage, setSelectedImage] = useState({});
   const [remarks, setRemarks] = useState({});
 
-  const token = localStorage.getItem("token") || "";
-
   useEffect(() => {
     fetchIssues();
     const interval = setInterval(fetchIssues, 5000);
@@ -23,38 +21,30 @@ export default function WorkerDashboard() {
 
   const fetchIssues = async () => {
     try {
-      const res = await axios.get("/api/issues/worker", {
-        headers: { Authorization: token }, // ✅ FIXED (no Bearer)
-      });
-
+      const res = await API.get("/api/issues/worker"); // ✅ FIXED
       setIssues(res.data);
-      setLoading(false);
     } catch (err) {
-      console.log(err);
+      console.error(err);
+    } finally {
       setLoading(false);
     }
   };
 
-  // 🔄 START WORK
   const updateStatus = async (id, status) => {
     try {
       setActionLoading(id);
 
-      await axios.put(
-        `/api/issues/${id}`,
-        { status },
-        { headers: { Authorization: token } } // ✅ FIXED
-      );
+      await API.put(`/api/issues/${id}`, { status }); // ✅ FIXED
 
       fetchIssues();
-    } catch {
+    } catch (err) {
+      console.error(err);
       alert("Update failed ❌");
     } finally {
       setActionLoading(null);
     }
   };
 
-  // 📤 SUBMIT WORK
   const submitWork = async (id) => {
     try {
       if (!selectedImage[id]) {
@@ -68,16 +58,15 @@ export default function WorkerDashboard() {
       formData.append("image", selectedImage[id]);
       formData.append("remarks", remarks[id] || "");
 
-      await axios.put(`/api/issues/complete/${id}`, formData, {
-        headers: {
-          Authorization: token, // ✅ FIXED
-          "Content-Type": "multipart/form-data",
-        },
+      await API.put(`/api/issues/complete/${id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" }
       });
 
       alert("Work submitted ✅");
       fetchIssues();
-    } catch {
+
+    } catch (err) {
+      console.error(err);
       alert("Submission failed ❌");
     } finally {
       setActionLoading(null);
@@ -93,13 +82,11 @@ export default function WorkerDashboard() {
       <Navbar setIsOpen={setIsOpen} />
       <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} role="worker" />
 
-      <div
-        style={{
-          marginTop: "60px",
-          marginLeft: isOpen ? "220px" : "0",
-          padding: "20px",
-        }}
-      >
+      <div style={{
+        marginTop: "60px",
+        marginLeft: isOpen ? "220px" : "0",
+        padding: "20px",
+      }}>
         <h1>👷 Worker Dashboard</h1>
 
         {issues.length === 0 && <p>No assigned tasks 🚀</p>}
@@ -110,33 +97,26 @@ export default function WorkerDashboard() {
             <p>{issue.description}</p>
 
             <p style={{ fontSize: "13px", color: "#555" }}>
-              👤 Reported by:{" "}
-              <b>{issue.createdBy?.name || "Unknown"}</b>
+              👤 Reported by: <b>{issue.createdBy?.name || "Unknown"}</b>
             </p>
 
-            {/* 🖼 USER IMAGE */}
             {issue.image && (
               <img
                 src={`/uploads/${issue.image}`}
-                alt="issue"
+                alt=""
                 style={styles.image}
-                onClick={() =>
-                  setPreviewImage(`/uploads/${issue.image}`)
-                }
+                onClick={() => setPreviewImage(`/uploads/${issue.image}`)}
               />
             )}
 
-            {/* 📸 COMPLETED IMAGE */}
             {issue.completionImage && (
               <>
                 <p>📸 Completed:</p>
                 <img
-                  src={`/${issue.completionImage}`}
-                  alt="completed"
+                  src={`/uploads/${issue.completionImage}`}
                   style={styles.image}
-                  onClick={() =>
-                    setPreviewImage(`/${issue.completionImage}`)
-                  }
+                  onClick={() => setPreviewImage(`/uploads/${issue.completionImage}`)}
+                  alt=""
                 />
               </>
             )}
@@ -144,19 +124,15 @@ export default function WorkerDashboard() {
             <StatusBadge status={issue.status} />
 
             <div style={{ marginTop: "10px" }}>
+
               {/* ▶ START */}
-              {(issue.status === "assigned" ||
-                issue.status === "submitted") && (
+              {issue.status !== "in-progress" && issue.status !== "resolved" && (
                 <button
                   style={styles.startBtn}
                   disabled={actionLoading === issue._id}
-                  onClick={() =>
-                    updateStatus(issue._id, "in-progress")
-                  }
+                  onClick={() => updateStatus(issue._id, "in-progress")}
                 >
-                  {actionLoading === issue._id
-                    ? "Starting..."
-                    : "▶ Start Work"}
+                  {actionLoading === issue._id ? "Starting..." : "▶ Start Work"}
                 </button>
               )}
 
@@ -166,10 +142,10 @@ export default function WorkerDashboard() {
                   <input
                     type="file"
                     onChange={(e) =>
-                      setSelectedImage({
-                        ...selectedImage,
+                      setSelectedImage(prev => ({
+                        ...prev,
                         [issue._id]: e.target.files[0],
-                      })
+                      }))
                     }
                   />
 
@@ -177,10 +153,10 @@ export default function WorkerDashboard() {
                     placeholder="Add remarks..."
                     style={{ width: "100%", marginTop: "5px" }}
                     onChange={(e) =>
-                      setRemarks({
-                        ...remarks,
+                      setRemarks(prev => ({
+                        ...prev,
                         [issue._id]: e.target.value,
-                      })
+                      }))
                     }
                   />
 
@@ -196,7 +172,6 @@ export default function WorkerDashboard() {
                 </div>
               )}
 
-              {/* ✅ DONE */}
               {issue.status === "resolved" && (
                 <span style={styles.doneText}>✔ Completed</span>
               )}
@@ -204,17 +179,9 @@ export default function WorkerDashboard() {
           </div>
         ))}
 
-        {/* 🔍 IMAGE PREVIEW */}
         {previewImage && (
-          <div
-            style={styles.previewOverlay}
-            onClick={() => setPreviewImage(null)}
-          >
-            <img
-              src={previewImage}
-              style={styles.previewImage}
-              alt="preview"
-            />
+          <div style={styles.previewOverlay} onClick={() => setPreviewImage(null)}>
+            <img src={previewImage} style={styles.previewImage} alt="" />
           </div>
         )}
       </div>
@@ -223,7 +190,6 @@ export default function WorkerDashboard() {
     </div>
   );
 }
-
 
 // 🔹 STATUS BADGE
 function StatusBadge({ status }) {

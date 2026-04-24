@@ -1,7 +1,16 @@
 import { useState } from "react";
-import axios from "axios";
+import API from "../api"; // ✅ FIXED
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import L from "leaflet"; // ✅ FIXED
+
+// ✅ FIX MARKER ICON
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: require("leaflet/dist/images/marker-icon-2x.png"),
+  iconUrl: require("leaflet/dist/images/marker-icon.png"),
+  shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
+});
 
 export default function CreateIssue() {
   const [data, setData] = useState({
@@ -16,29 +25,27 @@ export default function CreateIssue() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  // 📍 AUTO LOCATION
   const getLocation = () => {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setData({
-          ...data,
+        setData(prev => ({
+          ...prev,
           lat: pos.coords.latitude,
           lng: pos.coords.longitude
-        });
+        }));
       },
       () => alert("Location access denied ❌")
     );
   };
 
-  // 📍 MANUAL MAP PICKER
   function LocationPicker() {
     useMapEvents({
       click(e) {
-        setData({
-          ...data,
+        setData(prev => ({
+          ...prev,
           lat: e.latlng.lat,
           lng: e.latlng.lng
-        });
+        }));
       }
     });
 
@@ -65,29 +72,26 @@ export default function CreateIssue() {
     const formData = new FormData();
     formData.append("title", data.title);
     formData.append("description", data.description);
-    formData.append(
-      "location",
-      JSON.stringify({ lat: data.lat, lng: data.lng })
-    );
+    formData.append("location", JSON.stringify({
+      lat: data.lat,
+      lng: data.lng
+    }));
 
     if (image) formData.append("image", image);
 
     try {
-      await axios.post("/api/issues", formData, {
-        headers: {
-          Authorization: localStorage.getItem("token"),
-        },
+      await API.post("/api/issues", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
       });
 
       setSuccess(true);
-
-      // reset
       setData({ title: "", description: "", lat: "", lng: "" });
       setImage(null);
 
       setTimeout(() => setSuccess(false), 3000);
 
     } catch (err) {
+      console.error(err);
       alert("Error submitting ❌");
     }
 

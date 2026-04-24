@@ -6,70 +6,56 @@ export default function Sidebar({ isOpen, setIsOpen }) {
 
   const role = user?.role || "user";
 
-  // 🔥 ROLE-BASED MENUS
-  const menuConfig = {
+  const menus = {
     admin: [
-      { label: "📊 Dashboard", path: "/admin" },
-      { label: "📋 Manage Issues", path: "/admin/issues" },
-      { label: "🗺️ Map Analytics", path: "/map" },
-      { label: "ℹ️ About", path: "/about" }
+      { label: "Dashboard", path: "/admin" },
+      { label: "Manage Issues", path: "/admin/issues" },
+      { label: "Map", path: "/map" }
     ],
-
     worker: [
-      { label: "📊 Dashboard", path: "/worker" },
-      { label: "🛠️ My Tasks", path: "/worker" },
-      { label: "🗺️ Map View", path: "/map" },
-      { label: "ℹ️ About", path: "/about" }
+      { label: "Dashboard", path: "/worker" },
+      { label: "Tasks", path: "/worker" }
     ],
-
     user: [
-      { label: "🏠 Dashboard", path: "/dashboard" },
-      { label: "📍 Report Issue", path: "/create" },
-      { label: "📊 My Issues", path: "/issues" },
-      { label: "🗺️ Map", path: "/map" },
-      { label: "ℹ️ About", path: "/about" }
+      { label: "Dashboard", path: "/dashboard" },
+      { label: "Report Issue", path: "/create" },
+      { label: "My Issues", path: "/issues" },
+      { label: "Map", path: "/map" }
     ]
   };
 
-  const menuItems = menuConfig[role] || menuConfig.user;
+  const menuItems = menus[role] || menus.user; // ✅ SAFE FIX
 
   return (
     <>
-      {/* 🔲 OVERLAY */}
+      {/* OVERLAY */}
       {isOpen && (
-        <div
-          style={styles.overlay}
-          onClick={() => setIsOpen(false)}
-        />
+        <div style={styles.overlay} onClick={() => setIsOpen(false)} />
       )}
 
-      {/* 📌 SIDEBAR */}
+      {/* SIDEBAR */}
       <div
         style={{
           ...styles.sidebar,
           transform: isOpen ? "translateX(0)" : "translateX(-100%)"
         }}
       >
-        <h2 style={styles.logo}>🚀 CivicTrack</h2>
+        <h2>CivicTrack</h2>
 
-        <p style={styles.role}>
-          {role.toUpperCase()} PANEL
-        </p>
+        {menuItems.map((item, i) => (
+          <div
+            key={i}
+            style={styles.item}
+            onClick={() => {
+              navigate(item.path);
+              setIsOpen(false);
+            }}
+          >
+            {item.label}
+          </div>
+        ))}
 
-        <div style={styles.menu}>
-          {menuItems.map((item, index) => (
-            <MenuItem
-              key={index}
-              label={item.label}
-              onClick={() => {
-                navigate(item.path);
-                setIsOpen(false);
-              }}
-            />
-          ))}
-        </div>
-
-        {/* 🔓 LOGOUT */}
+        {/* LOGOUT */}
         <div
           style={styles.logout}
           onClick={() => {
@@ -77,94 +63,51 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             navigate("/");
           }}
         >
-          🚪 Logout
+          Logout
         </div>
       </div>
     </>
   );
 }
 
-
-/* 🔹 MENU ITEM */
-function MenuItem({ label, onClick }) {
-  return (
-    <div
-      onClick={onClick}
-      style={styles.item}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.background = "#1e293b";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = "transparent";
-      }}
-    >
-      {label}
-    </div>
-  );
-}
-
-
-/* 🎨 STYLES */
 const styles = {
   sidebar: {
     position: "fixed",
-    top: 0,
+    top: "60px", // ✅ FIX (don’t overlap navbar)
     left: 0,
-    width: "240px",
-    height: "100%",
-    background: "rgba(15, 23, 42, 0.95)",
-    backdropFilter: "blur(10px)",
+    width: "220px",
+    height: "calc(100% - 60px)", // ✅ FIX
+    background: "#0f172a",
     color: "white",
     padding: "20px",
     zIndex: 1001,
-    transition: "0.3s ease"
-  },
-
-  logo: {
-    marginBottom: "10px",
-    fontWeight: "600",
-    fontSize: "20px"
-  },
-
-  role: {
-    fontSize: "12px",
-    color: "#94a3b8",
-    marginBottom: "20px"
-  },
-
-  menu: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px"
+    transition: "0.3s"
   },
 
   item: {
-    cursor: "pointer",
-    padding: "12px",
-    borderRadius: "8px",
-    transition: "0.2s",
-    fontSize: "14px"
+    padding: "10px",
+    marginTop: "10px",
+    cursor: "pointer"
   },
 
   logout: {
-    position: "absolute",
-    bottom: "20px",
-    left: "20px",
-    right: "20px",
-    padding: "12px",
-    background: "#ef4444",
-    textAlign: "center",
-    borderRadius: "8px",
-    cursor: "pointer",
-    fontWeight: "500"
-  },
+  position: "absolute",
+  bottom: "60px", // 👈 move it up (you can tweak: 50–80px)
+  left: "20px",
+  right: "20px",
+  background: "red",
+  padding: "10px",
+  textAlign: "center",
+  cursor: "pointer",
+  borderRadius: "6px"
+},
 
   overlay: {
     position: "fixed",
-    top: 0,
+    top: "60px", // ✅ FIX
     left: 0,
     width: "100%",
-    height: "100%",
+    height: "calc(100% - 60px)",
     background: "rgba(0,0,0,0.3)",
     zIndex: 1000
   }

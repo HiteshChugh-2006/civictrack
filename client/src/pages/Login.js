@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import API from "../api"; // ✅ FIXED
 import { useNavigate } from "react-router-dom";
 
 export default function Login() {
@@ -18,22 +18,16 @@ export default function Login() {
     try {
       setLoading(true);
 
-      const res = await axios.post("/api/auth/login", data);
+      const res = await API.post("/api/auth/login", data); // ✅ FIXED
 
       const { token, user } = res.data;
 
-      // ✅ Save securely
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
 
-      // ✅ ROLE BASED REDIRECT (FINAL FIX)
-      if (user.role === "admin") {
-        navigate("/admin");
-      } else if (user.role === "worker") {
-        navigate("/worker");
-      } else {
-        navigate("/dashboard");
-      }
+      if (user.role === "admin") navigate("/admin");
+      else if (user.role === "worker") navigate("/worker");
+      else navigate("/dashboard");
 
     } catch (err) {
       console.error(err);

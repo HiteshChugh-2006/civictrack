@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import API from "../api"; // ✅ FIXED
 import { useNavigate } from "react-router-dom";
 
 export default function Register() {
@@ -14,17 +14,20 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!data.name || !data.email || !data.password) {
+      alert("⚠️ Fill all fields");
+      return;
+    }
+
     try {
-      await axios.post(
-        "/api/auth/register",
-        data
-      );
+      await API.post("/api/auth/register", data); // ✅ FIXED
 
       alert("Registered Successfully ✅");
       navigate("/");
 
-    } catch {
-      alert("Error ❌");
+    } catch (err) {
+      console.error(err);
+      alert(err?.response?.data || "Error ❌");
     }
   };
 
@@ -77,9 +80,32 @@ export default function Register() {
 }
 
 const styles = {
-  container: { height: "100vh", display: "flex", justifyContent: "center", alignItems: "center" },
-  card: { background: "white", padding: "25px", borderRadius: "10px", width: "300px", textAlign: "center" },
-  input: { width: "100%", margin: "10px 0", padding: "10px" },
-  button: { width: "100%", padding: "10px", background: "green", color: "white" },
-  link: { color: "blue", cursor: "pointer" }
+  container: {
+    height: "100vh",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center"
+  },
+  card: {
+    background: "white",
+    padding: "25px",
+    borderRadius: "10px",
+    width: "300px",
+    textAlign: "center"
+  },
+  input: {
+    width: "100%",
+    margin: "10px 0",
+    padding: "10px"
+  },
+  button: {
+    width: "100%",
+    padding: "10px",
+    background: "green",
+    color: "white"
+  },
+  link: {
+    color: "blue",
+    cursor: "pointer"
+  }
 };

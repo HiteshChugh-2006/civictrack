@@ -22,6 +22,9 @@ button {
   border-radius: 6px;
   cursor: pointer;
 }
+.leaflet-popup {
+  z-index: 10000 !important;
+}
 
 button:hover {
   background: #1e40af;
