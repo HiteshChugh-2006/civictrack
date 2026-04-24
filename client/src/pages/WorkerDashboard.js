@@ -239,74 +239,109 @@ function StatusBadge({ status }) {
 
 // 🎨 STYLES
 const styles = {
+  container: {
+    display: "flex",
+    justifyContent: "center",
+    padding: "40px",
+    background: "#f1f5f9",
+    minHeight: "100vh"
+  },
+
   card: {
     background: "white",
-    borderRadius: "12px",
-    padding: "20px",
-    marginBottom: "20px",
-    boxShadow: "0 5px 15px rgba(0,0,0,0.08)"
-  },
-
-  user: {
-    fontSize: "13px",
-    color: "#555"
-  },
-
-  image: {
+    padding: "30px",
+    borderRadius: "14px",
     width: "100%",
-    height: "150px",
-    objectFit: "cover",
-    borderRadius: "10px",
-    marginTop: "10px",
-    cursor: "pointer"
+    maxWidth: "500px",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.1)"
+  },
+
+  heading: {
+    marginBottom: "20px"
+  },
+
+  inputGroup: {
+    position: "relative",
+    marginBottom: "20px"
+  },
+
+  input: {
+    width: "100%",
+    padding: "12px",
+    border: "1px solid #ccc",
+    borderRadius: "8px"
   },
 
   textarea: {
     width: "100%",
-    marginTop: "5px",
-    padding: "6px"
+    padding: "12px",
+    border: "1px solid #ccc",
+    borderRadius: "8px",
+    minHeight: "80px"
   },
 
-  startBtn: {
+  label: {
+    position: "absolute",
+    top: "-8px",
+    left: "10px",
+    background: "white",
+    padding: "0 5px",
+    fontSize: "12px"
+  },
+
+  locationBtn: {
+    marginBottom: "10px",
+    padding: "10px",
     background: "#3b82f6",
     color: "white",
     border: "none",
-    padding: "8px 14px",
-    borderRadius: "6px",
+    borderRadius: "8px",
     cursor: "pointer"
   },
 
-  doneBtn: {
+  map: {
+    height: "200px",
+    marginBottom: "10px"
+  },
+
+  successText: {
+    color: "green",
+    marginBottom: "10px"
+  },
+
+  drop: {
+    border: "2px dashed #ccc",
+    padding: "20px",
+    textAlign: "center",
+    borderRadius: "10px",
+    cursor: "pointer",
+    marginBottom: "15px"
+  },
+
+  file: {
+    marginTop: "10px"
+  },
+
+  preview: {
+    width: "100%",
+    marginBottom: "15px",
+    borderRadius: "10px"
+  },
+
+  submit: {
+    width: "100%",
+    padding: "12px",
     background: "#22c55e",
     color: "white",
     border: "none",
-    padding: "8px 14px",
-    borderRadius: "6px",
-    cursor: "pointer",
-    marginTop: "5px"
+    borderRadius: "10px",
+    cursor: "pointer"
   },
 
-  doneText: {
-    color: "#16a34a",
-    fontWeight: "bold"
-  },
-
-  previewOverlay: {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    background: "rgba(0,0,0,0.8)",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 9999
-  },
-
-  previewImage: {
-    maxWidth: "90%",
-    maxHeight: "90%",
-    borderRadius: "10px"
+  successBox: {
+    background: "#dcfce7",
+    padding: "10px",
+    borderRadius: "8px",
+    marginBottom: "15px"
   }
 };
