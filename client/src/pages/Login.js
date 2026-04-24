@@ -19,24 +19,17 @@ export default function Login() {
       setLoading(true);
 
       const res = await axios.post("/api/auth/login", data);
-
       const { token, user } = res.data;
 
-      // ✅ Save securely
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
 
-      // ✅ ROLE BASED REDIRECT (FINAL FIX)
-      if (user.role === "admin") {
-        navigate("/admin");
-      } else if (user.role === "worker") {
-        navigate("/worker");
-      } else {
-        navigate("/dashboard");
-      }
+      // ✅ Role-based redirect
+      if (user.role === "admin") navigate("/admin");
+      else if (user.role === "worker") navigate("/worker");
+      else navigate("/dashboard");
 
     } catch (err) {
-      console.error(err);
       alert(err?.response?.data || "Login Failed ❌");
     } finally {
       setLoading(false);
@@ -46,12 +39,16 @@ export default function Login() {
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        <h2 style={styles.title}>🔐 CivicTrack Login</h2>
+
+        <h1 style={styles.logo}>🚀 CivicTrack</h1>
+        <p style={styles.subtitle}>
+          Smart Civic Issue Reporting System
+        </p>
 
         <form onSubmit={handleSubmit}>
           <input
             type="email"
-            placeholder="Email"
+            placeholder="Enter Email"
             value={data.email}
             style={styles.input}
             onChange={(e) =>
@@ -61,7 +58,7 @@ export default function Login() {
 
           <input
             type="password"
-            placeholder="Password"
+            placeholder="Enter Password"
             value={data.password}
             style={styles.input}
             onChange={(e) =>
@@ -71,23 +68,20 @@ export default function Login() {
 
           <button
             type="submit"
+            disabled={loading}
             style={{
               ...styles.button,
               opacity: loading ? 0.7 : 1
             }}
-            disabled={loading}
           >
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
         <p style={styles.link} onClick={() => navigate("/register")}>
-          New user? Sign up
+          Don’t have an account? Sign up
         </p>
 
-        <p style={styles.forgot}>
-          Forgot Password? (Coming soon 🚀)
-        </p>
       </div>
     </div>
   );
@@ -98,52 +92,56 @@ const styles = {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    background: "linear-gradient(135deg, #eef2ff, #f8fafc)"
+    background: "linear-gradient(135deg, #667eea, #764ba2)"
   },
 
   card: {
-    background: "rgba(255,255,255,0.8)",
-    backdropFilter: "blur(10px)",
+    width: "340px",
     padding: "30px",
-    borderRadius: "15px",
-    boxShadow: "0 10px 25px rgba(0,0,0,0.15)",
-    width: "320px",
-    textAlign: "center"
+    borderRadius: "18px",
+    background: "rgba(255,255,255,0.15)",
+    backdropFilter: "blur(15px)",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+    textAlign: "center",
+    color: "white"
   },
 
-  title: {
-    marginBottom: "20px"
+  logo: {
+    marginBottom: "5px"
+  },
+
+  subtitle: {
+    fontSize: "13px",
+    marginBottom: "20px",
+    color: "#e0e7ff"
   },
 
   input: {
     width: "100%",
     padding: "12px",
     margin: "10px 0",
-    borderRadius: "8px",
-    border: "1px solid #ccc",
+    borderRadius: "10px",
+    border: "none",
     outline: "none"
   },
 
   button: {
     width: "100%",
     padding: "12px",
-    background: "#e53935",
-    color: "white",
-    border: "none",
-    borderRadius: "8px",
     marginTop: "10px",
+    borderRadius: "10px",
+    border: "none",
+    background: "#22c55e",
+    color: "white",
+    fontWeight: "bold",
     cursor: "pointer"
   },
 
   link: {
-    color: "#2563eb",
+    marginTop: "15px",
+    fontSize: "13px",
     cursor: "pointer",
-    marginTop: "10px"
-  },
-
-  forgot: {
-    color: "#ef4444",
-    fontSize: "12px",
-    marginTop: "5px"
+    color: "#c7d2fe"
   }
 };
+``
