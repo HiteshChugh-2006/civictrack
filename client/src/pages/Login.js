@@ -21,10 +21,11 @@ export default function Login() {
       const res = await axios.post("/api/auth/login", data);
       const { token, user } = res.data;
 
+      // ✅ store data
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
 
-      // ✅ Role-based redirect
+      // ✅ role-based redirect
       if (user.role === "admin") navigate("/admin");
       else if (user.role === "worker") navigate("/worker");
       else navigate("/dashboard");
@@ -86,6 +87,8 @@ export default function Login() {
     </div>
   );
 }
+
+// 🎨 STYLES (NO ERROR VERSION)
 const styles = {
   container: {
     height: "100vh",
@@ -144,4 +147,3 @@ const styles = {
     color: "#c7d2fe"
   }
 };
-``
