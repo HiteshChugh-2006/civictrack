@@ -1,11 +1,41 @@
 import { useNavigate } from "react-router-dom";
 
-export default function Sidebar({ isOpen, setIsOpen, role = "user" }) {
+export default function Sidebar({ isOpen, setIsOpen }) {
   const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  const role = user?.role || "user";
+
+  // 🔥 ROLE-BASED MENUS
+  const menuConfig = {
+    admin: [
+      { label: "📊 Dashboard", path: "/admin" },
+      { label: "📋 Manage Issues", path: "/admin/issues" },
+      { label: "🗺️ Map Analytics", path: "/map" },
+      { label: "ℹ️ About", path: "/about" }
+    ],
+
+    worker: [
+      { label: "📊 Dashboard", path: "/worker" },
+      { label: "🛠️ My Tasks", path: "/worker" },
+      { label: "🗺️ Map View", path: "/map" },
+      { label: "ℹ️ About", path: "/about" }
+    ],
+
+    user: [
+      { label: "🏠 Dashboard", path: "/dashboard" },
+      { label: "📍 Report Issue", path: "/create" },
+      { label: "📊 My Issues", path: "/issues" },
+      { label: "🗺️ Map", path: "/map" },
+      { label: "ℹ️ About", path: "/about" }
+    ]
+  };
+
+  const menuItems = menuConfig[role] || menuConfig.user;
 
   return (
     <>
-      {/* 🔲 OVERLAY (for mobile) */}
+      {/* 🔲 OVERLAY */}
       {isOpen && (
         <div
           style={styles.overlay}
@@ -22,27 +52,32 @@ export default function Sidebar({ isOpen, setIsOpen, role = "user" }) {
       >
         <h2 style={styles.logo}>🚀 CivicTrack</h2>
 
+        <p style={styles.role}>
+          {role.toUpperCase()} PANEL
+        </p>
+
         <div style={styles.menu}>
+          {menuItems.map((item, index) => (
+            <MenuItem
+              key={index}
+              label={item.label}
+              onClick={() => {
+                navigate(item.path);
+                setIsOpen(false);
+              }}
+            />
+          ))}
+        </div>
 
-          {/* 🔥 ADMIN MENU */}
-          {role === "admin" ? (
-            <>
-              <MenuItem label="📊 Dashboard" onClick={() => navigate("/admin")} />
-              <MenuItem label="📋 Manage Issues" onClick={() => navigate("/admin")} />
-              <MenuItem label="🗺️ Map Analytics" onClick={() => navigate("/map")} />
-              <MenuItem label="ℹ️ About" onClick={() => navigate("/about")} />
-            </>
-          ) : (
-            <>
-              {/* 👤 USER MENU */}
-              <MenuItem label="🏠 Dashboard" onClick={() => navigate("/dashboard")} />
-              <MenuItem label="📍 Report Issue" onClick={() => navigate("/create")} />
-              <MenuItem label="📊 My Issues" onClick={() => navigate("/issues")} />
-              <MenuItem label="🗺️ Map" onClick={() => navigate("/map")} />
-              <MenuItem label="ℹ️ About" onClick={() => navigate("/about")} />
-            </>
-          )}
-
+        {/* 🔓 LOGOUT */}
+        <div
+          style={styles.logout}
+          onClick={() => {
+            localStorage.clear();
+            navigate("/");
+          }}
+        >
+          🚪 Logout
         </div>
       </div>
     </>
@@ -50,7 +85,7 @@ export default function Sidebar({ isOpen, setIsOpen, role = "user" }) {
 }
 
 
-/* 🔹 MENU ITEM COMPONENT */
+/* 🔹 MENU ITEM */
 function MenuItem({ label, onClick }) {
   return (
     <div
@@ -75,9 +110,10 @@ const styles = {
     position: "fixed",
     top: 0,
     left: 0,
-    width: "220px",
+    width: "240px",
     height: "100%",
-    background: "#0f172a",
+    background: "rgba(15, 23, 42, 0.95)",
+    backdropFilter: "blur(10px)",
     color: "white",
     padding: "20px",
     zIndex: 1001,
@@ -85,8 +121,15 @@ const styles = {
   },
 
   logo: {
-    marginBottom: "30px",
-    fontWeight: "600"
+    marginBottom: "10px",
+    fontWeight: "600",
+    fontSize: "20px"
+  },
+
+  role: {
+    fontSize: "12px",
+    color: "#94a3b8",
+    marginBottom: "20px"
   },
 
   menu: {
@@ -97,9 +140,23 @@ const styles = {
 
   item: {
     cursor: "pointer",
-    padding: "10px",
-    borderRadius: "6px",
-    transition: "0.2s"
+    padding: "12px",
+    borderRadius: "8px",
+    transition: "0.2s",
+    fontSize: "14px"
+  },
+
+  logout: {
+    position: "absolute",
+    bottom: "20px",
+    left: "20px",
+    right: "20px",
+    padding: "12px",
+    background: "#ef4444",
+    textAlign: "center",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontWeight: "500"
   },
 
   overlay: {
