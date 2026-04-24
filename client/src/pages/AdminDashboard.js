@@ -186,4 +186,98 @@ function StatCard({ title, value, color }) {
       <h2>{value}</h2>
     </div>
   );
-                              }
+}
+// 🎨 STYLES
+
+const styles = {
+layout: { display: "flex", minHeight: "100vh", background: "#f1f5f9" },
+
+content: { marginTop: "60px", padding: "30px", width: "100%" },
+
+previewOverlay: {
+position: "fixed",
+top: 0,
+left: 0,
+width: "100%",
+height: "100%",
+background: "rgba(0,0,0,0.8)",
+display: "flex",
+justifyContent: "center",
+alignItems: "center",
+zIndex: 9999
+},
+
+previewImage: {
+maxWidth: "90%",
+maxHeight: "90%",
+borderRadius: "10px"
+},
+
+stats: {
+display: "grid",
+gridTemplateColumns: "repeat(auto-fit, minmax(180px,1fr))",
+gap: "15px",
+marginBottom: "20px"
+},
+
+statCard: {
+background: "white",
+padding: "15px",
+borderRadius: "10px",
+boxShadow: "0 5px 15px rgba(0,0,0,0.08)"
+},
+
+topBar: {
+display: "flex",
+gap: "10px",
+marginBottom: "20px"
+},
+
+search: {
+padding: "10px",
+borderRadius: "8px",
+border: "1px solid #ccc",
+width: "250px"
+},
+
+select: {
+padding: "10px",
+borderRadius: "8px",
+border: "1px solid #ccc"
+},
+
+grid: {
+display: "grid",
+gridTemplateColumns: "repeat(auto-fit, minmax(300px,1fr))",
+gap: "20px"
+},
+
+card: {
+background: "rgba(255,255,255,0.75)",
+backdropFilter: "blur(12px)",
+borderRadius: "16px",
+padding: "20px",
+boxShadow: "0 10px 25px rgba(0,0,0,0.12)"
+},
+
+image: {
+width: "100%",
+height: "150px",
+objectFit: "cover",
+borderRadius: "10px",
+marginTop: "10px",
+cursor: "pointer"
+},
+
+meta: {
+display: "flex",
+justifyContent: "space-between",
+marginTop: "10px"
+},
+
+actions: {
+display: "flex",
+gap: "10px",
+marginTop: "15px"
+}
+};      
