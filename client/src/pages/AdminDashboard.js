@@ -187,6 +187,32 @@ function StatCard({ title, value, color }) {
     </div>
   );
 }
+// 🔹 STATUS BADGE (ADD THIS)
+
+function StatusBadge({ status }) {
+  const map = {
+    resolved: { bg: "#dcfce7", color: "#16a34a" },
+    "in-progress": { bg: "#dbeafe", color: "#2563eb" },
+    assigned: { bg: "#fef3c7", color: "#d97706" },
+    submitted: { bg: "#e5e7eb", color: "#374151" }
+  };
+
+  const s = map[status] || map.submitted;
+
+  return (
+    <span
+      style={{
+        padding: "5px 10px",
+        borderRadius: "20px",
+        background: s.bg,
+        color: s.color,
+        fontSize: "12px"
+      }}
+    >
+      {status}
+    </span>
+  );
+}
 // 🎨 STYLES
 
 const styles = {
