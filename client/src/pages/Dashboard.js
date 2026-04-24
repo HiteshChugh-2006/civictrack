@@ -3,7 +3,7 @@ import Navbar from "../components/Navbar";
 import Chatbot from "../components/Chatbot";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import API from "../api";
+import api from "../api";
 
 import {
   PieChart, Pie, Cell,
@@ -25,7 +25,7 @@ export default function Dashboard() {
 
   const fetchIssues = async () => {
     try {
-      const res = await API.get("/api/issues");
+      const res = await api.get("/issues");
       setIssues(res.data);
     } catch (err) {
       console.log(err);
@@ -34,8 +34,9 @@ export default function Dashboard() {
     }
   };
 
-  // ✅ FIXED
-  const myIssues = issues;
+  const myIssues = issues.filter(
+    (i) => String(i.createdBy?._id) === String(user?._id)
+  );
 
   const stats = {
     myTotal: myIssues.length,
@@ -46,67 +47,81 @@ export default function Dashboard() {
 
   if (loading) return <h2 style={{ padding: "100px" }}>Loading...</h2>;
 
+  const pieData = [
+    { name: "Pending", value: stats.pending },
+    { name: "Resolved", value: stats.resolved }
+  ];
+
+  const COLORS = ["#f59e0b", "#22c55e"];
+
   return (
-    <div style={{ display: "flex", background: "#f1f5f9", minHeight: "100vh" }}>
+    <div style={styles.wrapper}>
       <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} />
       <Navbar setIsOpen={setIsOpen} />
 
-      <div style={{ marginLeft: isOpen ? "220px" : "0", padding: "30px", width: "100%" }}>
-        <h2>Welcome, {user?.name} 👋</h2>
-        <h1>Dashboard</h1>
+      <div style={{
+        ...styles.main,
+        marginLeft: isOpen ? "220px" : "0"
+      }}>
+        <h2 style={styles.welcome}>Welcome, {user?.name} 👋</h2>
+        <h1 style={styles.heading}>Dashboard</h1>
 
         {/* STATS */}
-        <div style={grid}>
-          <Card title="My Issues" value={stats.myTotal} />
-          <Card title="Resolved" value={stats.resolved} />
-          <Card title="Pending" value={stats.pending} />
-          <Card title="Total" value={stats.total} />
+        <div style={styles.grid}>
+          <Card title="My Issues" value={stats.myTotal} color="#3b82f6" />
+          <Card title="Resolved" value={stats.resolved} color="#22c55e" />
+          <Card title="Pending" value={stats.pending} color="#f59e0b" />
+          <Card title="Total Issues" value={stats.total} color="#6366f1" />
         </div>
 
         {/* ACTIONS */}
-        <div style={grid}>
+        <div style={styles.grid}>
           <Action title="📍 Report Issue" onClick={() => navigate("/create")} />
           <Action title="📊 My Issues" onClick={() => navigate("/issues")} />
-          <Action title="🗺️ Map" onClick={() => navigate("/map")} />
+          <Action title="🗺️ Map View" onClick={() => navigate("/map")} />
         </div>
 
-        {/* PIE CHART */}
-        <ResponsiveContainer width="100%" height={250}>
-          <PieChart>
-            <Pie
-              data={[
+        {/* CHARTS */}
+        <div style={styles.chartGrid}>
+          
+          {/* PIE */}
+          <div style={styles.chartCard}>
+            <h3>Status Distribution</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  dataKey="value"
+                  outerRadius={90}
+                  label
+                >
+                  {pieData.map((entry, index) => (
+                    <Cell key={index} fill={COLORS[index]} />
+                  ))}
+                </Pie>
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* BAR */}
+          <div style={styles.chartCard}>
+            <h3>Issue Stats</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={[
+                { name: "Total", value: stats.total },
                 { name: "Resolved", value: stats.resolved },
                 { name: "Pending", value: stats.pending }
-              ]}
-              dataKey="value"
-              outerRadius={80}
-            >
-              <Cell fill="#22c55e" />
-              <Cell fill="#f59e0b" />
-            </Pie>
-            <Tooltip />
-            <Legend />
-          </PieChart>
-        </ResponsiveContainer>
+              ]}>
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="value" fill="#3b82f6" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
 
-        {/* BAR CHART */}
-        <ResponsiveContainer width="100%" height={250}>
-          <BarChart data={[
-            { name: "Total", value: stats.total },
-            { name: "Resolved", value: stats.resolved },
-            { name: "Pending", value: stats.pending }
-          ]}>
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
-            <Bar dataKey="value">
-              <Cell fill="#3b82f6" />
-              <Cell fill="#22c55e" />
-              <Cell fill="#f59e0b" />
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-
+        </div>
       </div>
 
       <Chatbot />
@@ -114,22 +129,81 @@ export default function Dashboard() {
   );
 }
 
-const grid = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))",
-  gap: "15px",
-  marginBottom: "20px"
-};
 
-const Card = ({ title, value }) => (
-  <div style={{ background: "white", padding: "20px", borderRadius: "12px" }}>
-    <h4>{title}</h4>
+// 🔹 COMPONENTS
+
+const Card = ({ title, value, color }) => (
+  <div style={{
+    ...styles.card,
+    borderTop: `4px solid ${color}`
+  }}>
+    <h4 style={{ color: "#555" }}>{title}</h4>
     <h2>{value}</h2>
   </div>
 );
 
 const Action = ({ title, onClick }) => (
-  <div onClick={onClick} style={{ background: "white", padding: "20px", borderRadius: "12px", cursor: "pointer" }}>
+  <div onClick={onClick} style={styles.action}>
     {title}
   </div>
 );
+
+
+// 🎨 STYLES
+
+const styles = {
+  wrapper: {
+    display: "flex",
+    background: "#f1f5f9",
+    minHeight: "100vh"
+  },
+
+  main: {
+    padding: "30px",
+    width: "100%",
+    marginTop: "60px"
+  },
+
+  welcome: {
+    color: "#64748b"
+  },
+
+  heading: {
+    marginBottom: "20px"
+  },
+
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))",
+    gap: "15px",
+    marginBottom: "20px"
+  },
+
+  card: {
+    background: "white",
+    padding: "20px",
+    borderRadius: "12px",
+    boxShadow: "0 6px 18px rgba(0,0,0,0.08)"
+  },
+
+  action: {
+    background: "white",
+    padding: "20px",
+    borderRadius: "12px",
+    cursor: "pointer",
+    boxShadow: "0 5px 12px rgba(0,0,0,0.08)"
+  },
+
+  chartGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "20px"
+  },
+
+  chartCard: {
+    background: "white",
+    padding: "20px",
+    borderRadius: "12px",
+    boxShadow: "0 6px 18px rgba(0,0,0,0.08)"
+  }
+};
