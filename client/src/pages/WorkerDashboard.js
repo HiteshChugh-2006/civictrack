@@ -9,24 +9,21 @@ export default function WorkerDashboard() {
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
   const [previewImage, setPreviewImage] = useState(null);
-const [selectedImage, setSelectedImage] = useState({});
-const [remarks, setRemarks] = useState({});
+  const [selectedImage, setSelectedImage] = useState({});
+  const [remarks, setRemarks] = useState({});
+
   const token = localStorage.getItem("token");
+  const user = JSON.parse(localStorage.getItem("user"));
 
   useEffect(() => {
     fetchIssues();
-
-    const interval = setInterval(fetchIssues, 5000);
-    return () => clearInterval(interval);
   }, []);
 
   const fetchIssues = async () => {
     try {
       const res = await axios.get(
-        "/api/issues/worker",
-        {
-          headers: { Authorization: token },
-        }
+        `/api/issues/worker/${user._id}`,   // ✅ FIXED
+        { headers: { Authorization: token } }
       );
       setIssues(res.data);
       setLoading(false);
@@ -36,65 +33,60 @@ const [remarks, setRemarks] = useState({});
     }
   };
 
-  // ✅ UPDATE STATUS
-  const updateStatus = async (id, status) => {
+  // ✅ START WORK
+  const startWork = async (id) => {
+    await axios.put(
+      `/api/issues/${id}`,
+      { status: "in-progress" },
+      { headers: { Authorization: token } }
+    );
+    fetchIssues();
+  };
+
+  // ✅ SUBMIT WORK
+  const submitWork = async (id) => {
     try {
+      const formData = new FormData();
+      formData.append("image", selectedImage[id]);
+      formData.append("remarks", remarks[id] || "");
+
       await axios.put(
-        `/api/issues/${id}`,
-        { status },
+        `/api/issues/complete/${id}`,
+        formData,
         {
-          headers: { Authorization: token },
+          headers: {
+            Authorization: token,
+            "Content-Type": "multipart/form-data"
+          }
         }
       );
-      fetchIssues();
+
+      alert("Work submitted ✅");
+      fetchIssues(); // ✅ refresh
+
     } catch (err) {
       console.log(err);
-      alert("Update failed ❌");
+      alert("Submission failed ❌");
     }
   };
 
   if (loading) {
     return <h2 style={{ padding: "100px" }}>Loading tasks...</h2>;
   }
-const submitWork = async (id) => {
-  try {
-    const formData = new FormData();
-    formData.append("image", selectedImage[id]);
-    formData.append("remarks", remarks[id] || "");
 
-    await axios.put(
-      `/api/issues/complete/${id}`,
-      formData,
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`, // 🔥 FIX
-          "Content-Type": "multipart/form-data"
-        }
-      }
-    );
-
-    alert("Work submitted ✅");
-
-  } catch (err) {
-    console.log("ERROR:", err.response?.data || err);
-    alert("Submission failed ❌");
-  }
-};
   return (
     <div>
       <Navbar setIsOpen={setIsOpen} />
-      <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} role="worker" />
+      <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} />
 
       <div style={{
         marginTop: "60px",
-        marginLeft: isOpen ? "220px" : "0",
+        marginLeft: isOpen ? "240px" : "0",
         padding: "20px"
       }}>
         <h1>👷 Worker Dashboard</h1>
 
-        {issues.length === 0 && (
-          <p>No assigned tasks 🚀</p>
-        )}
+        {issues.length === 0 && <p>No assigned tasks 🚀</p>}
 
         {issues.map(issue => (
           <div key={issue._id} style={styles.card}>
@@ -102,82 +94,93 @@ const submitWork = async (id) => {
             <h3>{issue.title}</h3>
             <p>{issue.description}</p>
 
-            {/* 👤 REPORTED BY */}
-            <p style={{ fontSize: "13px", color: "#555" }}>
-              👤 Reported by: <b>{issue.createdBy?.name || "Unknown"}</b>
+            <p style={{ fontSize: "13px" }}>
+              👤 {issue.createdBy?.name || "Unknown"}
             </p>
 
-            {/* 🖼 IMAGE */}
+            {/* ✅ FIXED IMAGE */}
             {issue.image && (
               <img
-                src={`/api/uploads/${issue.image}`}
-                alt="issue"
+                src={`/${issue.image}`}
                 style={styles.image}
-                onClick={() =>
-                  setPreviewImage(`/api/uploads/${issue.image}`)
-                }
+                onClick={() => setPreviewImage(`/${issue.image}`)}
               />
             )}
 
             <StatusBadge status={issue.status} />
 
-            {/* ⚙ ACTIONS */}
-            <div style={{ marginTop: "10px" }}>
+            {/* ▶ START */}
+            {issue.status === "assigned" && (
+              <button
+                style={styles.startBtn}
+                onClick={() => startWork(issue._id)}
+              >
+                ▶ Start Work
+              </button>
+            )}
 
-              {(issue.status === "assigned" || issue.status === "pending") && (
+            {/* 📤 SUBMIT */}
+            {issue.status === "in-progress" && (
+              <div style={{ marginTop: "10px" }}>
+
+                <input
+                  type="file"
+                  onChange={(e) =>
+                    setSelectedImage({
+                      ...selectedImage,
+                      [issue._id]: e.target.files[0]
+                    })
+                  }
+                />
+
+                <textarea
+                  placeholder="Add remarks..."
+                  style={styles.textarea}
+                  onChange={(e) =>
+                    setRemarks({
+                      ...remarks,
+                      [issue._id]: e.target.value
+                    })
+                  }
+                />
+
                 <button
-                  style={styles.startBtn}
-                  onClick={() => updateStatus(issue._id, "in-progress")}
+                  style={styles.doneBtn}
+                  onClick={() => submitWork(issue._id)}
                 >
-                  ▶ Start Work
+                  📤 Submit Work
                 </button>
-              )}
 
-              {issue.status === "in-progress" && (
-  <div style={{ marginTop: "10px" }}>
+              </div>
+            )}
 
-    <input
-      type="file"
-      onChange={(e) =>
-        setSelectedImage({
-          ...selectedImage,
-          [issue._id]: e.target.files[0]
-        })
-      }
-    />
+            {/* ✅ COMPLETED VIEW */}
+            {issue.status === "resolved" && (
+              <>
+                <p style={styles.doneText}>✔ Completed</p>
 
-    <textarea
-      placeholder="Add remarks..."
-      style={{ width: "100%", marginTop: "5px" }}
-      onChange={(e) =>
-        setRemarks({
-          ...remarks,
-          [issue._id]: e.target.value
-        })
-      }
-    />
+                {issue.completionImage && (
+                  <img
+                    src={`/${issue.completionImage}`}
+                    style={styles.image}
+                    onClick={() =>
+                      setPreviewImage(`/${issue.completionImage}`)
+                    }
+                  />
+                )}
 
-    <button
-      style={styles.doneBtn}
-      onClick={() => submitWork(issue._id)}
-    >
-      📤 Submit Work
-    </button>
-
-  </div>
-)}
-
-              {issue.status === "resolved" && (
-                <span style={styles.doneText}>
-                  ✔ Completed
-                </span>
-              )}
-            </div>
+                {issue.remarks && (
+                  <p style={styles.remarks}>
+                    📝 {issue.remarks}
+                  </p>
+                )}
+              </>
+            )}
 
           </div>
         ))}
 
-        {/* 🔍 IMAGE PREVIEW */}
+        {/* 🔍 PREVIEW */}
         {previewImage && (
           <div style={styles.previewOverlay} onClick={() => setPreviewImage(null)}>
             <img src={previewImage} style={styles.previewImage} />
@@ -192,25 +195,14 @@ const submitWork = async (id) => {
 }
 
 
-// 🔹 STATUS BADGE
+// 🔹 STATUS
 function StatusBadge({ status }) {
-  const map = {
-    resolved: { bg: "#dcfce7", color: "#16a34a" },
-    "in-progress": { bg: "#dbeafe", color: "#2563eb" },
-    assigned: { bg: "#fef3c7", color: "#d97706" },
-    pending: { bg: "#fef3c7", color: "#d97706" }
-  };
-
-  const s = map[status] || map.pending;
-
   return (
     <div style={{
       marginTop: "10px",
       padding: "5px 10px",
       borderRadius: "20px",
-      background: s.bg,
-      color: s.color,
-      display: "inline-block",
+      background: "#e0f2fe",
       fontSize: "12px"
     }}>
       {status}
@@ -226,10 +218,8 @@ const styles = {
     backdropFilter: "blur(12px)",
     borderRadius: "16px",
     padding: "20px",
-    boxShadow: "0 10px 25px rgba(0,0,0,0.12)",
-    transition: "0.3s",
-    border: "1px solid rgba(255,255,255,0.2)",
-    marginBottom: "20px"
+    marginBottom: "20px",
+    boxShadow: "0 10px 25px rgba(0,0,0,0.12)"
   },
 
   image: {
@@ -241,6 +231,42 @@ const styles = {
     cursor: "pointer"
   },
 
+  textarea: {
+    width: "100%",
+    marginTop: "5px",
+    padding: "8px",
+    borderRadius: "6px"
+  },
+
+  startBtn: {
+    background: "#3b82f6",
+    color: "white",
+    padding: "6px 12px",
+    borderRadius: "6px",
+    marginTop: "10px"
+  },
+
+  doneBtn: {
+    background: "#22c55e",
+    color: "white",
+    padding: "6px 12px",
+    borderRadius: "6px",
+    marginTop: "10px"
+  },
+
+  doneText: {
+    color: "#16a34a",
+    fontWeight: "bold",
+    marginTop: "10px"
+  },
+
+  remarks: {
+    background: "#f1f5f9",
+    padding: "8px",
+    borderRadius: "6px",
+    marginTop: "5px"
+  },
+
   previewOverlay: {
     position: "fixed",
     top: 0,
@@ -250,36 +276,11 @@ const styles = {
     background: "rgba(0,0,0,0.8)",
     display: "flex",
     justifyContent: "center",
-    alignItems: "center",
-    zIndex: 9999
+    alignItems: "center"
   },
 
   previewImage: {
     maxWidth: "90%",
-    maxHeight: "90%",
-    borderRadius: "10px"
-  },
-
-  startBtn: {
-    background: "#3b82f6",
-    color: "white",
-    border: "none",
-    padding: "6px 12px",
-    borderRadius: "6px",
-    cursor: "pointer"
-  },
-
-  doneBtn: {
-    background: "#22c55e",
-    color: "white",
-    border: "none",
-    padding: "6px 12px",
-    borderRadius: "6px",
-    cursor: "pointer"
-  },
-
-  doneText: {
-    color: "#16a34a",
-    fontWeight: "bold"
+    maxHeight: "90%"
   }
 };
