@@ -46,6 +46,12 @@ export default function Dashboard() {
   };
 
   const pieData = [
+    { name: "Resolved", value: stats.resolved || 0 },
+    { name: "Pending", value: stats.pending || 0 }
+  ];
+
+  const barData = [
+    { name: "Total", value: stats.total },
     { name: "Resolved", value: stats.resolved },
     { name: "Pending", value: stats.pending }
   ];
@@ -63,58 +69,69 @@ export default function Dashboard() {
         ...styles.main,
         marginLeft: isOpen ? "220px" : "20px"
       }}>
-        <h2 style={styles.welcome}>Welcome, {user?.name}</h2>
-        <h1>Dashboard</h1>
+        <h2 style={styles.welcome}>
+          Welcome, {user?.name || "User"} 👋
+        </h2>
+
+        <h1 style={styles.heading}>Dashboard</h1>
 
         {/* STATS */}
         <div style={styles.grid}>
           <Card title="My Issues" value={stats.myTotal} color="#3b82f6" />
           <Card title="Resolved" value={stats.resolved} color="#22c55e" />
           <Card title="Pending" value={stats.pending} color="#f59e0b" />
-          <Card title="Total" value={stats.total} color="#6366f1" />
+          <Card title="Total Issues" value={stats.total} color="#6366f1" />
         </div>
 
         {/* ACTIONS */}
         <div style={styles.grid}>
           <Action title="📍 Report Issue" onClick={() => navigate("/create")} />
           <Action title="📊 My Issues" onClick={() => navigate("/issues")} />
-          <Action title="🗺️ Map" onClick={() => navigate("/map")} />
+          <Action title="🗺️ Map View" onClick={() => navigate("/map")} />
         </div>
 
         {/* CHARTS */}
         <div style={styles.chartGrid}>
-          <div style={styles.chartCard}>
-            <h3>Status</h3>
 
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie data={pieData} dataKey="value">
-                  {pieData.map((_, i) => (
-                    <Cell key={i} fill={COLORS[i]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
+          {/* PIE */}
+          <div style={styles.chartCard}>
+            <h3>Status Distribution</h3>
+
+            {stats.total === 0 ? (
+              <p>No data available</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={260}>
+                <PieChart>
+                  <Pie data={pieData} dataKey="value">
+                    {pieData.map((_, i) => (
+                      <Cell key={i} fill={COLORS[i]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            )}
           </div>
 
+          {/* BAR */}
           <div style={styles.chartCard}>
-            <h3>Stats</h3>
+            <h3>Issue Stats</h3>
 
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={[
-                { name: "Total", value: stats.total },
-                { name: "Resolved", value: stats.resolved },
-                { name: "Pending", value: stats.pending }
-              ]}>
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="value" fill="#3b82f6" />
-              </BarChart>
-            </ResponsiveContainer>
+            {stats.total === 0 ? (
+              <p>No data available</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={barData}>
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="value" fill="#3b82f6" radius={[6,6,0,0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
+
         </div>
       </div>
 
@@ -123,57 +140,86 @@ export default function Dashboard() {
   );
 }
 
+
 /* COMPONENTS */
+
 const Card = ({ title, value, color }) => (
   <div style={{ ...styles.card, borderTop: `4px solid ${color}` }}>
-    <h4>{title}</h4>
+    <h4 style={styles.cardTitle}>{title}</h4>
     <h2>{value}</h2>
   </div>
 );
 
 const Action = ({ title, onClick }) => (
-  <div onClick={onClick} style={styles.action}>{title}</div>
+  <div onClick={onClick} style={styles.action}>
+    {title}
+  </div>
 );
 
+
 /* STYLES */
+
 const styles = {
-  wrapper: { display: "flex", background: "#f1f5f9", minHeight: "100vh" },
+  wrapper: {
+    display: "flex",
+    background: "#f1f5f9",
+    minHeight: "100vh"
+  },
 
-  main: { padding: "30px", width: "100%", marginTop: "60px" },
+  main: {
+    padding: "30px",
+    width: "100%",
+    marginTop: "60px",
+    transition: "0.3s"
+  },
 
-  welcome: { color: "#64748b" },
+  welcome: {
+    color: "#64748b",
+    marginBottom: "5px"
+  },
 
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))",
-    gap: "20px",
+  heading: {
     marginBottom: "20px"
   },
 
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+    gap: "20px",
+    marginBottom: "25px"
+  },
+
   card: {
-    background: "white",
+    background: "#ffffff",
     padding: "20px",
     borderRadius: "12px",
     boxShadow: "0 4px 10px rgba(0,0,0,0.08)"
   },
 
+  cardTitle: {
+    color: "#6b7280"
+  },
+
   action: {
-    background: "white",
+    background: "#ffffff",
     padding: "20px",
     borderRadius: "12px",
     cursor: "pointer",
-    textAlign: "center"
+    textAlign: "center",
+    fontWeight: "500",
+    boxShadow: "0 4px 10px rgba(0,0,0,0.08)"
   },
 
   chartGrid: {
     display: "grid",
-    gridTemplateColumns: "1fr 1fr",
+    gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))",
     gap: "20px"
   },
 
   chartCard: {
-    background: "white",
+    background: "#ffffff",
     padding: "20px",
-    borderRadius: "12px"
+    borderRadius: "14px",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.08)"
   }
 };
