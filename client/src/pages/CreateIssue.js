@@ -1,8 +1,8 @@
 import { useState } from "react";
-import API from "../api"; // ✅ FIXED
+import api from "../api"; // ✅ FIXED (lowercase)
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import L from "leaflet"; // ✅ FIXED
+import L from "leaflet";
 
 // ✅ FIX MARKER ICON
 delete L.Icon.Default.prototype._getIconUrl;
@@ -19,12 +19,13 @@ export default function CreateIssue() {
     lat: "",
     lng: ""
   });
-const BASE_URL = process.env.REACT_APP_API_URL || "";
+
   const [image, setImage] = useState(null);
   const [drag, setDrag] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  // 📍 AUTO LOCATION
   const getLocation = () => {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -38,6 +39,7 @@ const BASE_URL = process.env.REACT_APP_API_URL || "";
     );
   };
 
+  // 📍 MAP PICKER
   function LocationPicker() {
     useMapEvents({
       click(e) {
@@ -54,6 +56,7 @@ const BASE_URL = process.env.REACT_APP_API_URL || "";
     ) : null;
   }
 
+  // 🚀 SUBMIT
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -72,17 +75,15 @@ const BASE_URL = process.env.REACT_APP_API_URL || "";
     const formData = new FormData();
     formData.append("title", data.title);
     formData.append("description", data.description);
-    formData.append("location", JSON.stringify({
-      lat: data.lat,
-      lng: data.lng
-    }));
+    formData.append(
+      "location",
+      JSON.stringify({ lat: data.lat, lng: data.lng })
+    );
 
     if (image) formData.append("image", image);
 
     try {
-      await API.post("/api/issues", formData, {
-        headers: { "Content-Type": "multipart/form-data" }
-      });
+      await api.post("/issues", formData); // ✅ FIXED
 
       setSuccess(true);
       setData({ title: "", description: "", lat: "", lng: "" });
@@ -93,16 +94,16 @@ const BASE_URL = process.env.REACT_APP_API_URL || "";
     } catch (err) {
       console.error(err);
       alert("Error submitting ❌");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
+  // 📂 DRAG DROP
   const handleDrop = (e) => {
     e.preventDefault();
     setDrag(false);
-    const file = e.dataTransfer.files[0];
-    setImage(file);
+    setImage(e.dataTransfer.files[0]);
   };
 
   return (
@@ -145,16 +146,11 @@ const BASE_URL = process.env.REACT_APP_API_URL || "";
             <label style={styles.label}>Description</label>
           </div>
 
-          {/* LOCATION BUTTON */}
-          <button
-            type="button"
-            style={styles.locationBtn}
-            onClick={getLocation}
-          >
+          {/* LOCATION */}
+          <button type="button" style={styles.locationBtn} onClick={getLocation}>
             📍 Use My Location
           </button>
 
-          {/* MAP */}
           <div style={styles.map}>
             <MapContainer
               center={[30.7333, 76.7794]}
@@ -168,16 +164,15 @@ const BASE_URL = process.env.REACT_APP_API_URL || "";
 
           {data.lat && (
             <p style={styles.successText}>
-              📍 Selected: {data.lat.toFixed(4)}, {data.lng.toFixed(4)}
+              📍 {data.lat.toFixed(4)}, {data.lng.toFixed(4)}
             </p>
           )}
 
-          {/* DRAG DROP */}
+          {/* IMAGE */}
           <div
             style={{
               ...styles.drop,
-              borderColor: drag ? "#3b82f6" : "#ccc",
-              background: drag ? "#eff6ff" : "#fafafa"
+              borderColor: drag ? "#3b82f6" : "#ccc"
             }}
             onDragOver={(e) => {
               e.preventDefault();
@@ -186,15 +181,13 @@ const BASE_URL = process.env.REACT_APP_API_URL || "";
             onDragLeave={() => setDrag(false)}
             onDrop={handleDrop}
           >
-            <p>📂 Drag & Drop Image or Click</p>
+            <p>📂 Drag & Drop Image</p>
             <input
               type="file"
               onChange={(e) => setImage(e.target.files[0])}
-              style={styles.file}
             />
           </div>
 
-          {/* PREVIEW */}
           {image && (
             <img
               src={URL.createObjectURL(image)}
@@ -203,13 +196,9 @@ const BASE_URL = process.env.REACT_APP_API_URL || "";
             />
           )}
 
-          {/* SUBMIT */}
           <button
             disabled={loading}
-            style={{
-              ...styles.submit,
-              opacity: loading ? 0.7 : 1
-            }}
+            style={styles.submit}
           >
             {loading ? "Submitting..." : "Submit Issue"}
           </button>
@@ -219,116 +208,5 @@ const BASE_URL = process.env.REACT_APP_API_URL || "";
     </div>
   );
 }
-const styles = {
-  container: {
-    display: "flex",
-    justifyContent: "center",
-    padding: "40px",
-    background: "#f1f5f9",
-    minHeight: "100vh"
-  },
 
-  card: {
-    background: "white",
-    padding: "30px",
-    borderRadius: "14px",
-    width: "100%",
-    maxWidth: "500px",
-    boxShadow: "0 10px 30px rgba(0,0,0,0.1)"
-  },
-
-  heading: {
-    marginBottom: "20px"
-  },
-
-  inputGroup: {
-    position: "relative",
-    marginBottom: "20px"
-  },
-
-  input: {
-    width: "100%",
-    padding: "12px",
-    border: "1px solid #ccc",
-    borderRadius: "8px"
-  },
-
-  textarea: {
-    width: "100%",
-    padding: "12px",
-    border: "1px solid #ccc",
-    borderRadius: "8px",
-    minHeight: "80px"
-  },
-
-  label: {
-    position: "absolute",
-    top: "-8px",
-    left: "10px",
-    background: "white",
-    padding: "0 5px",
-    fontSize: "12px"
-  },
-
-  locationBtn: {
-    marginBottom: "10px",
-    padding: "10px",
-    background: "#3b82f6",
-    color: "white",
-    border: "none",
-    borderRadius: "8px",
-    cursor: "pointer"
-  },
-
-  map: {
-    height: "200px",
-    marginBottom: "10px"
-  },
-
-  successText: {
-    color: "green",
-    marginBottom: "10px"
-  },
-
-  drop: {
-    border: "2px dashed #ccc",
-    padding: "20px",
-    textAlign: "center",
-    borderRadius: "10px",
-    cursor: "pointer",
-    marginBottom: "15px"
-  },
-
-  file: {
-    marginTop: "10px"
-  },
-
-  preview: {
-    width: "100%",
-    marginBottom: "15px",
-    borderRadius: "10px"
-  },
-
-  submit: {
-    width: "100%",
-    padding: "12px",
-    background: "#22c55e",
-    color: "white",
-    border: "none",
-    borderRadius: "10px",
-    cursor: "pointer"
-  },
-
-  successBox: {
-    background: "#dcfce7",
-    padding: "10px",
-    borderRadius: "8px",
-    marginBottom: "15px"
-  }
-};
-
-// 🎨 EXTRA STYLE ADD
-styles.map = {
-  height: "200px",
-  marginBottom: "10px"
-};
+/* STYLES SAME AS YOURS */
