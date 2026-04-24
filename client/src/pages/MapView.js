@@ -1,26 +1,18 @@
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
-import markerIcon from "leaflet/dist/images/marker-icon.png";
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
-
 import "leaflet/dist/leaflet.css";
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-// Fix default icon issue
-delete L.Icon.Default.prototype._getIconUrl;
 
-L.Icon.Default.mergeOptions({
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
-});
 
 const createIcon = (color) =>
   new L.Icon({
     iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-${color}.png`,
-    shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
+    shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
     iconSize: [25, 41],
     iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
   });
 
 const icons = {
@@ -91,7 +83,7 @@ export default function MapView() {
 
                   {i.image && (
                     <img
-                      src={`/api/${i.image}`}
+                      src={`/uploads/${i.image}`}
                       alt="issue"
                       style={styles.image}
                     />
