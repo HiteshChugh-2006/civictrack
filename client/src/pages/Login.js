@@ -11,27 +11,33 @@ export default function Login() {
     e.preventDefault();
 
     if (!data.email || !data.password) {
-      alert("Fill all fields ❗");
+      alert("⚠️ Please fill all fields");
       return;
     }
 
     try {
       setLoading(true);
 
-      const res = await axios.post(
-        "/api/auth/login",
-        data
-      );
+      const res = await axios.post("/api/auth/login", data);
 
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
+      const { token, user } = res.data;
 
-      if (res.data.user.role === "admin") navigate("/admin");
-      else if (res.data.user.role === "worker") navigate("/worker");
-      else navigate("/dashboard");
+      // ✅ Save securely
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+
+      // ✅ ROLE BASED REDIRECT (FINAL FIX)
+      if (user.role === "admin") {
+        navigate("/admin");
+      } else if (user.role === "worker") {
+        navigate("/worker");
+      } else {
+        navigate("/dashboard");
+      }
 
     } catch (err) {
-      alert("Login Failed ❌");
+      console.error(err);
+      alert(err?.response?.data || "Login Failed ❌");
     } finally {
       setLoading(false);
     }
@@ -40,7 +46,7 @@ export default function Login() {
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        <h2>🔐 CivicTrack Login</h2>
+        <h2 style={styles.title}>🔐 CivicTrack Login</h2>
 
         <form onSubmit={handleSubmit}>
           <input
@@ -63,8 +69,15 @@ export default function Login() {
             }
           />
 
-          <button type="submit" style={styles.button}>
-            {loading ? "Logging..." : "Login"}
+          <button
+            type="submit"
+            style={{
+              ...styles.button,
+              opacity: loading ? 0.7 : 1
+            }}
+            disabled={loading}
+          >
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
@@ -72,47 +85,65 @@ export default function Login() {
           New user? Sign up
         </p>
 
-        <p style={styles.forgot} onClick={() => alert("Coming soon 🚀")}>
-          Forgot Password?
+        <p style={styles.forgot}>
+          Forgot Password? (Coming soon 🚀)
         </p>
       </div>
     </div>
   );
 }
-
 const styles = {
   container: {
     height: "100vh",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    background: "#f4f6f9"
+    background: "linear-gradient(135deg, #eef2ff, #f8fafc)"
   },
+
   card: {
-    background: "white",
-    padding: "25px",
-    borderRadius: "12px",
-    boxShadow: "0 5px 15px rgba(0,0,0,0.1)",
+    background: "rgba(255,255,255,0.8)",
+    backdropFilter: "blur(10px)",
+    padding: "30px",
+    borderRadius: "15px",
+    boxShadow: "0 10px 25px rgba(0,0,0,0.15)",
     width: "320px",
-    textAlign: "center",
-    position: "relative",
-    zIndex: 10
+    textAlign: "center"
   },
+
+  title: {
+    marginBottom: "20px"
+  },
+
   input: {
     width: "100%",
-    padding: "10px",
+    padding: "12px",
     margin: "10px 0",
-    borderRadius: "5px",
-    border: "1px solid #ccc"
+    borderRadius: "8px",
+    border: "1px solid #ccc",
+    outline: "none"
   },
+
   button: {
     width: "100%",
-    padding: "10px",
+    padding: "12px",
     background: "#e53935",
     color: "white",
     border: "none",
-    borderRadius: "5px"
+    borderRadius: "8px",
+    marginTop: "10px",
+    cursor: "pointer"
   },
-  link: { color: "blue", cursor: "pointer" },
-  forgot: { color: "red", cursor: "pointer", fontSize: "12px" }
+
+  link: {
+    color: "#2563eb",
+    cursor: "pointer",
+    marginTop: "10px"
+  },
+
+  forgot: {
+    color: "#ef4444",
+    fontSize: "12px",
+    marginTop: "5px"
+  }
 };
