@@ -209,4 +209,119 @@ export default function CreateIssue() {
   );
 }
 
-/* STYLES SAME AS YOURS */
+const styles = {
+  container: {
+    display: "flex",
+    justifyContent: "center",
+    padding: "40px",
+    background: "#f1f5f9",
+    minHeight: "100vh"
+  },
+
+  card: {
+    background: "#ffffff",
+    padding: "30px",
+    borderRadius: "14px",
+    width: "100%",
+    maxWidth: "500px",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.1)"
+  },
+
+  heading: {
+    marginBottom: "20px",
+    fontWeight: "600"
+  },
+
+  inputGroup: {
+    position: "relative",
+    marginBottom: "20px"
+  },
+
+  input: {
+    width: "100%",
+    padding: "12px",
+    border: "1px solid #ccc",
+    borderRadius: "8px",
+    outline: "none"
+  },
+
+  textarea: {
+    width: "100%",
+    padding: "12px",
+    border: "1px solid #ccc",
+    borderRadius: "8px",
+    minHeight: "80px",
+    outline: "none"
+  },
+
+  label: {
+    position: "absolute",
+    top: "-8px",
+    left: "10px",
+    background: "#fff",
+    padding: "0 5px",
+    fontSize: "12px",
+    color: "#555"
+  },
+
+  locationBtn: {
+    marginBottom: "10px",
+    padding: "10px",
+    background: "#3b82f6",
+    color: "#fff",
+    border: "none",
+    borderRadius: "8px",
+    cursor: "pointer"
+  },
+
+  map: {
+    height: "200px",
+    marginBottom: "10px",
+    borderRadius: "10px",
+    overflow: "hidden"
+  },
+
+  successText: {
+    color: "green",
+    marginBottom: "10px",
+    fontSize: "14px"
+  },
+
+  drop: {
+    border: "2px dashed #ccc",
+    padding: "20px",
+    textAlign: "center",
+    borderRadius: "10px",
+    cursor: "pointer",
+    marginBottom: "15px",
+    background: "#fafafa"
+  },
+
+  file: {
+    marginTop: "10px"
+  },
+
+  preview: {
+    width: "100%",
+    marginBottom: "15px",
+    borderRadius: "10px"
+  },
+
+  submit: {
+    width: "100%",
+    padding: "12px",
+    background: "#22c55e",
+    color: "white",
+    border: "none",
+    borderRadius: "10px",
+    cursor: "pointer"
+  },
+
+  successBox: {
+    background: "#dcfce7",
+    padding: "10px",
+    borderRadius: "8px",
+    marginBottom: "15px",
+    color: "#166534"
+  }
+};
