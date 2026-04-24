@@ -8,6 +8,7 @@ import WorkerDashboard from "./pages/WorkerDashboard";
 import CreateIssue from "./pages/CreateIssue";
 import Issues from "./pages/Issues";
 import MapView from "./pages/MapView";
+import About from "./pages/About";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -28,7 +29,7 @@ function App() {
 
         {/* ADMIN */}
         <Route path="/admin" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
-
+        <Route path="/about" element={<About />} />
         {/* WORKER */}
         <Route path="/worker" element={<ProtectedRoute role="worker"><WorkerDashboard /></ProtectedRoute>} />
 
