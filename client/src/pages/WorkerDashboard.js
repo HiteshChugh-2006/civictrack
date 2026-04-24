@@ -194,3 +194,88 @@ export default function WorkerDashboard() {
     </div>
   );
 }
+function StatusBadge({ status }) {
+  const map = {
+    resolved: { bg: "#dcfce7", color: "#16a34a" },
+    "in-progress": { bg: "#dbeafe", color: "#2563eb" },
+    assigned: { bg: "#fef3c7", color: "#d97706" },
+    pending: { bg: "#fef3c7", color: "#d97706" }
+  };
+
+  const s = map[status] || map.pending;
+
+  return (
+    <div style={{
+      marginTop: "10px",
+      padding: "5px 10px",
+      borderRadius: "20px",
+      background: s.bg,
+      color: s.color,
+      display: "inline-block",
+      fontSize: "12px"
+    }}>
+      {status}
+    </div>
+  );
+}
+const styles = {
+  card: {
+    background: "rgba(255,255,255,0.75)",
+    backdropFilter: "blur(12px)",
+    borderRadius: "16px",
+    padding: "20px",
+    boxShadow: "0 10px 25px rgba(0,0,0,0.12)",
+    marginBottom: "20px"
+  },
+
+  image: {
+    width: "100%",
+    height: "150px",
+    objectFit: "cover",
+    borderRadius: "10px",
+    marginTop: "10px",
+    cursor: "pointer"
+  },
+
+  previewOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    background: "rgba(0,0,0,0.8)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 9999
+  },
+
+  previewImage: {
+    maxWidth: "90%",
+    maxHeight: "90%",
+    borderRadius: "10px"
+  },
+
+  startBtn: {
+    background: "#3b82f6",
+    color: "white",
+    border: "none",
+    padding: "6px 12px",
+    borderRadius: "6px",
+    cursor: "pointer"
+  },
+
+  doneBtn: {
+    background: "#22c55e",
+    color: "white",
+    border: "none",
+    padding: "6px 12px",
+    borderRadius: "6px",
+    cursor: "pointer"
+  },
+
+  doneText: {
+    color: "#16a34a",
+    fontWeight: "bold"
+  }
+};
