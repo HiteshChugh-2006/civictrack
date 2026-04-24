@@ -16,7 +16,7 @@ export default function Issues() {
 
   const fetchIssues = async () => {
     try {
-      const res = await API.get("/api/issues"); // ✅ FIXED
+      const res = await API.get("/issues"); // ✅ FIXED
 
       const myIssues = res.data.filter(
         i => String(i.createdBy?._id) === String(user._id)
