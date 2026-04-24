@@ -18,7 +18,7 @@ export default function Login() {
     try {
       setLoading(true);
 
-      const res = await API.post("/api/auth/login", data); // ✅ FIXED
+      const res = await API.post("/auth/login", data); // ✅ FIXED
 
       const { token, user } = res.data;
 
