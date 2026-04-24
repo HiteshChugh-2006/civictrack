@@ -6,7 +6,7 @@ const auth = require("../middleware/auth");
 const multer = require("multer");
 const path = require("path");
 
-// 📸 Multer Storage Config
+// 📸 STORAGE
 const storage = multer.diskStorage({
   destination: "uploads/",
   filename: (req, file, cb) => {
@@ -17,12 +17,13 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 
-// 🔐 CREATE ISSUE (WITH IMAGE + LOCATION)
+// =============================
+// ✅ CREATE ISSUE
+// =============================
 router.post("/", auth, upload.single("image"), async (req, res) => {
   try {
     let location = null;
 
-    // ✅ Safe location parsing
     if (req.body.location) {
       try {
         location = JSON.parse(req.body.location);
@@ -49,12 +50,30 @@ router.post("/", auth, upload.single("image"), async (req, res) => {
 });
 
 
-// 🔐 GET ALL ISSUES
+// =============================
+// 🔥 GET ISSUES (ROLE BASED)
+// =============================
 router.get("/", auth, async (req, res) => {
   try {
-    const issues = await Issue.find()
-      .populate("createdBy", "name email")
-      .populate("assignedTo", "name email");
+    let issues;
+
+    if (req.user.role === "admin") {
+      // ✅ Admin → ALL
+      issues = await Issue.find()
+        .populate("createdBy", "name email")
+        .populate("assignedTo", "name email");
+    } 
+    else if (req.user.role === "worker") {
+      // ✅ Worker → assigned only
+      issues = await Issue.find({ assignedTo: req.user.id })
+        .populate("createdBy", "name email")
+        .populate("assignedTo", "name email");
+    } 
+    else {
+      // ✅ User → own only
+      issues = await Issue.find({ createdBy: req.user.id })
+        .populate("assignedTo", "name email");
+    }
 
     res.json(issues);
 
@@ -64,7 +83,9 @@ router.get("/", auth, async (req, res) => {
 });
 
 
-// 👨‍💼 ASSIGN ISSUE TO WORKER (ADMIN ONLY)
+// =============================
+// 👨‍💼 ASSIGN WORKER
+// =============================
 router.put("/assign/:id", auth, async (req, res) => {
   try {
     if (req.user.role !== "admin") {
@@ -72,10 +93,6 @@ router.put("/assign/:id", auth, async (req, res) => {
     }
 
     const { workerId } = req.body;
-
-    if (!workerId) {
-      return res.status(400).json("Worker ID required");
-    }
 
     const updated = await Issue.findByIdAndUpdate(
       req.params.id,
@@ -95,7 +112,9 @@ router.put("/assign/:id", auth, async (req, res) => {
 });
 
 
-// 👷 GET WORKER TASKS
+// =============================
+// 👷 WORKER TASKS
+// =============================
 router.get("/worker", auth, async (req, res) => {
   try {
     if (req.user.role !== "worker") {
@@ -116,9 +135,10 @@ router.get("/worker", auth, async (req, res) => {
 });
 
 
+// =============================
+// ✅ COMPLETE ISSUE (WORKER)
+// =============================
 router.put("/complete/:id", auth, upload.single("image"), async (req, res) => {
-  console.log("🔥 COMPLETE ROUTE HIT");  // IMPORTANT
-
   try {
     const { remarks } = req.body;
 
@@ -126,7 +146,7 @@ router.put("/complete/:id", auth, upload.single("image"), async (req, res) => {
       req.params.id,
       {
         status: "resolved",
-        completionImage: req.file ? `uploads/${req.file.filename}` : "",
+        completionImage: req.file ? req.file.filename : "", // ✅ FIXED
         remarks
       },
       { new: true }
@@ -139,4 +159,24 @@ router.put("/complete/:id", auth, upload.single("image"), async (req, res) => {
     res.status(500).json({ error: "Completion failed" });
   }
 });
+
+
+// =============================
+// ✅ UPDATE STATUS
+// =============================
+router.put("/:id", auth, async (req, res) => {
+  try {
+    const updated = await Issue.findByIdAndUpdate(
+      req.params.id,
+      { status: req.body.status },
+      { new: true }
+    );
+
+    res.json(updated);
+
+  } catch (err) {
+    res.status(500).json("Update failed");
+  }
+});
+
 module.exports = router;
