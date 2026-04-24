@@ -20,7 +20,7 @@ export default function Register() {
     }
 
     try {
-      await API.post("/api/auth/register", data); // ✅ FIXED
+      await API.post("/auth/register", data); // ✅ FIXED
 
       alert("Registered Successfully ✅");
       navigate("/");
