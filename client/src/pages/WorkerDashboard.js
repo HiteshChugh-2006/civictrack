@@ -12,7 +12,8 @@ export default function WorkerDashboard() {
   const [previewImage, setPreviewImage] = useState(null);
   const [selectedImage, setSelectedImage] = useState({});
   const [remarks, setRemarks] = useState({});
-const token = localStorage.getItem("token") || "";
+
+  const token = localStorage.getItem("token") || "";
 
   useEffect(() => {
     fetchIssues();
@@ -23,8 +24,9 @@ const token = localStorage.getItem("token") || "";
   const fetchIssues = async () => {
     try {
       const res = await axios.get("/api/issues/worker", {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: token }, // ✅ FIXED (no Bearer)
       });
+
       setIssues(res.data);
       setLoading(false);
     } catch (err) {
@@ -33,6 +35,7 @@ const token = localStorage.getItem("token") || "";
     }
   };
 
+  // 🔄 START WORK
   const updateStatus = async (id, status) => {
     try {
       setActionLoading(id);
@@ -40,19 +43,18 @@ const token = localStorage.getItem("token") || "";
       await axios.put(
         `/api/issues/${id}`,
         { status },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: token } } // ✅ FIXED
       );
 
       fetchIssues();
-    } catch (err) {
+    } catch {
       alert("Update failed ❌");
     } finally {
       setActionLoading(null);
     }
   };
 
+  // 📤 SUBMIT WORK
   const submitWork = async (id) => {
     try {
       if (!selectedImage[id]) {
@@ -68,14 +70,14 @@ const token = localStorage.getItem("token") || "";
 
       await axios.put(`/api/issues/complete/${id}`, formData, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: token, // ✅ FIXED
           "Content-Type": "multipart/form-data",
         },
       });
 
       alert("Work submitted ✅");
       fetchIssues();
-    } catch (err) {
+    } catch {
       alert("Submission failed ❌");
     } finally {
       setActionLoading(null);
@@ -112,31 +114,37 @@ const token = localStorage.getItem("token") || "";
               <b>{issue.createdBy?.name || "Unknown"}</b>
             </p>
 
-            {/* USER IMAGE */}
-{issue.image && (
-  <img
-    src={`/uploads/${issue.image}`}
-    alt="issue"
-    style={styles.image}
-    onClick={() => setPreviewImage(`/uploads/${issue.image}`)}
-  />
-)}
+            {/* 🖼 USER IMAGE */}
+            {issue.image && (
+              <img
+                src={`/uploads/${issue.image}`}
+                alt="issue"
+                style={styles.image}
+                onClick={() =>
+                  setPreviewImage(`/uploads/${issue.image}`)
+                }
+              />
+            )}
 
-{/* COMPLETED IMAGE */}
-{issue.completionImage && (
-  <>
-    <p>📸 Completed:</p>
-    <img
-      src={`/uploads/${issue.completionImage}`}
-      alt="completed"
-      style={styles.image}
-    />
-  </>
-)}
-console.log(issues);
+            {/* 📸 COMPLETED IMAGE */}
+            {issue.completionImage && (
+              <>
+                <p>📸 Completed:</p>
+                <img
+                  src={`/${issue.completionImage}`}
+                  alt="completed"
+                  style={styles.image}
+                  onClick={() =>
+                    setPreviewImage(`/${issue.completionImage}`)
+                  }
+                />
+              </>
+            )}
+
             <StatusBadge status={issue.status} />
 
             <div style={{ marginTop: "10px" }}>
+              {/* ▶ START */}
               {(issue.status === "assigned" ||
                 issue.status === "submitted") && (
                 <button
@@ -152,8 +160,9 @@ console.log(issues);
                 </button>
               )}
 
+              {/* 📤 SUBMIT */}
               {issue.status === "in-progress" && (
-                <div>
+                <div style={{ marginTop: "10px" }}>
                   <input
                     type="file"
                     onChange={(e) =>
@@ -187,6 +196,7 @@ console.log(issues);
                 </div>
               )}
 
+              {/* ✅ DONE */}
               {issue.status === "resolved" && (
                 <span style={styles.doneText}>✔ Completed</span>
               )}
@@ -194,7 +204,7 @@ console.log(issues);
           </div>
         ))}
 
-        {/* PREVIEW */}
+        {/* 🔍 IMAGE PREVIEW */}
         {previewImage && (
           <div
             style={styles.previewOverlay}
@@ -214,6 +224,8 @@ console.log(issues);
   );
 }
 
+
+// 🔹 STATUS BADGE
 function StatusBadge({ status }) {
   const map = {
     resolved: { bg: "#dcfce7", color: "#16a34a" },
@@ -241,9 +253,11 @@ function StatusBadge({ status }) {
   );
 }
 
+
+// 🎨 STYLES
 const styles = {
   card: {
-    background: "rgba(255,255,255,0.85)",
+    background: "rgba(255,255,255,0.9)",
     backdropFilter: "blur(12px)",
     borderRadius: "16px",
     padding: "20px",
@@ -283,7 +297,7 @@ const styles = {
     background: "#3b82f6",
     color: "white",
     border: "none",
-    padding: "6px 12px",
+    padding: "8px 14px",
     borderRadius: "6px",
     cursor: "pointer",
   },
@@ -292,9 +306,10 @@ const styles = {
     background: "#22c55e",
     color: "white",
     border: "none",
-    padding: "6px 12px",
+    padding: "8px 14px",
     borderRadius: "6px",
     cursor: "pointer",
+    marginTop: "5px",
   },
 
   doneText: {
