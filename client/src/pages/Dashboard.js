@@ -88,14 +88,13 @@ export default function Dashboard() {
 
           {/* PIE */}
           <div style={styles.chartCard}>
-            <h3>Status Distribution</h3>
+            <h3 style={styles.chartTitle}>Status Distribution</h3>
             <ResponsiveContainer width="100%" height={220}>
               <PieChart>
                 <Pie
                   data={pieData}
                   dataKey="value"
                   outerRadius={80}
-                  label
                 >
                   {pieData.map((entry, index) => (
                     <Cell key={index} fill={COLORS[index]} />
@@ -108,7 +107,7 @@ export default function Dashboard() {
 
           {/* BAR */}
           <div style={styles.chartCard}>
-            <h3>Issue Stats</h3>
+            <h3 style={styles.chartTitle}>Issue Stats</h3>
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={[
                 { name: "Total", value: stats.total },
@@ -132,14 +131,14 @@ export default function Dashboard() {
 }
 
 
-// COMPONENTS
+// 🔹 COMPONENTS
 
 const Card = ({ title, value, color }) => (
   <div style={{
     ...styles.card,
     borderTop: `5px solid ${color}`
   }}>
-    <h4 style={{ color: "#64748b" }}>{title}</h4>
+    <h4 style={styles.cardTitle}>{title}</h4>
     <h2>{value}</h2>
   </div>
 );
@@ -151,7 +150,7 @@ const Action = ({ title, onClick }) => (
 );
 
 
-// STYLES
+// 🎨 STYLES
 
 const styles = {
   wrapper: {
@@ -168,7 +167,8 @@ const styles = {
   },
 
   welcome: {
-    color: "#64748b"
+    color: "#64748b",
+    marginBottom: "5px"
   },
 
   heading: {
@@ -183,14 +183,18 @@ const styles = {
   },
 
   card: {
-    background: "#fff",
+    background: "#ffffff",
     padding: "20px",
     borderRadius: "12px",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.08)"
+    boxShadow: "0 4px 10px rgba(0,0,0,0.08)"
+  },
+
+  cardTitle: {
+    color: "#6b7280"
   },
 
   action: {
-    background: "#fff",
+    background: "#ffffff",
     padding: "20px",
     borderRadius: "12px",
     cursor: "pointer",
@@ -200,14 +204,17 @@ const styles = {
   chartGrid: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
-    gap: "20px",
-    marginTop: "20px"
+    gap: "20px"
   },
 
   chartCard: {
-    background: "#fff",
+    background: "#ffffff",
     padding: "20px",
     borderRadius: "14px",
     boxShadow: "0 4px 12px rgba(0,0,0,0.08)"
+  },
+
+  chartTitle: {
+    marginBottom: "10px"
   }
 };
