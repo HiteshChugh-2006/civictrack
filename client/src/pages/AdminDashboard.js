@@ -212,6 +212,46 @@ export default function AdminDashboard() {
     </div>
   );
 }
+// 🔹 STAT CARD
+function StatCard({ title, value, color }) {
+  return (
+    <div
+      style={{
+        ...styles.statCard,
+        borderTop: `4px solid ${color}`,
+      }}
+    >
+      <h4>{title}</h4>
+      <h2>{value}</h2>
+    </div>
+  );
+}
+
+// 🔹 STATUS BADGE
+function StatusBadge({ status }) {
+  const map = {
+    resolved: { bg: "#dcfce7", color: "#16a34a" },
+    "in-progress": { bg: "#dbeafe", color: "#2563eb" },
+    assigned: { bg: "#fef3c7", color: "#d97706" },
+    submitted: { bg: "#e5e7eb", color: "#374151" },
+  };
+
+  const s = map[status] || map.submitted;
+
+  return (
+    <span
+      style={{
+        padding: "5px 10px",
+        borderRadius: "20px",
+        background: s.bg,
+        color: s.color,
+        fontSize: "12px",
+      }}
+    >
+      {status}
+    </span>
+  );
+}
 const styles = {
   layout: {
     display: "flex",
