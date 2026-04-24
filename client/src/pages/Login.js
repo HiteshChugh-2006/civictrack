@@ -11,7 +11,7 @@ export default function Login() {
     e.preventDefault();
 
     if (!data.email || !data.password) {
-      alert("Please fill all fields");
+      alert("⚠️ Please fill all fields");
       return;
     }
 
@@ -19,17 +19,25 @@ export default function Login() {
       setLoading(true);
 
       const res = await axios.post("/api/auth/login", data);
+
       const { token, user } = res.data;
 
+      // ✅ Save securely
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
 
-      if (user.role === "admin") navigate("/admin");
-      else if (user.role === "worker") navigate("/worker");
-      else navigate("/dashboard");
+      // ✅ ROLE BASED REDIRECT (FINAL FIX)
+      if (user.role === "admin") {
+        navigate("/admin");
+      } else if (user.role === "worker") {
+        navigate("/worker");
+      } else {
+        navigate("/dashboard");
+      }
 
     } catch (err) {
-      alert("Login Failed");
+      console.error(err);
+      alert(err?.response?.data || "Login Failed ❌");
     } finally {
       setLoading(false);
     }
@@ -37,19 +45,8 @@ export default function Login() {
 
   return (
     <div style={styles.container}>
-
-      {/* 🌌 BACKGROUND BLOBS */}
-      <div style={styles.blob1}></div>
-      <div style={styles.blob2}></div>
-
-      {/* ⭐ STARS */}
-      <div style={styles.stars}></div>
-
-      {/* 🔐 LOGIN CARD */}
       <div style={styles.card}>
-
-        <h1 style={styles.title}>CivicTrack</h1>
-        <p style={styles.subtitle}>Manage civic issues smarter</p>
+        <h2 style={styles.title}>🔐 CivicTrack Login</h2>
 
         <form onSubmit={handleSubmit}>
           <input
@@ -72,113 +69,26 @@ export default function Login() {
             }
           />
 
-          <button type="submit" style={styles.button}>
-            {loading ? "Logging..." : "Login"}
+          <button
+            type="submit"
+            style={{
+              ...styles.button,
+              opacity: loading ? 0.7 : 1
+            }}
+            disabled={loading}
+          >
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
         <p style={styles.link} onClick={() => navigate("/register")}>
-          Create new account
+          New user? Sign up
         </p>
 
+        <p style={styles.forgot}>
+          Forgot Password? (Coming soon 🚀)
+        </p>
       </div>
     </div>
   );
 }
-const styles = {
-  container: {
-    height: "100vh",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    overflow: "hidden",
-    background: "#0f172a",
-    position: "relative"
-  },
-
-  /* 🔵 FLOATING BLOBS */
-  blob1: {
-    position: "absolute",
-    width: "300px",
-    height: "300px",
-    background: "linear-gradient(135deg, #3b82f6, #9333ea)",
-    borderRadius: "50%",
-    top: "-80px",
-    left: "-80px",
-    filter: "blur(100px)",
-    animation: "float 10s infinite alternate"
-  },
-
-  blob2: {
-    position: "absolute",
-    width: "250px",
-    height: "250px",
-    background: "linear-gradient(135deg, #22c55e, #06b6d4)",
-    borderRadius: "50%",
-    bottom: "-80px",
-    right: "-80px",
-    filter: "blur(100px)",
-    animation: "float 12s infinite alternate"
-  },
-
-  /* ⭐ STARS */
-  stars: {
-    position: "absolute",
-    width: "100%",
-    height: "100%",
-    backgroundImage:
-      "radial-gradient(white 1px, transparent 1px)",
-    backgroundSize: "20px 20px",
-    opacity: 0.15
-  },
-
-  /* 🔐 CARD */
-  card: {
-    width: "340px",
-    padding: "30px",
-    borderRadius: "16px",
-    background: "rgba(255,255,255,0.08)",
-    backdropFilter: "blur(10px)",
-    boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
-    textAlign: "center",
-    color: "white",
-    transform: "perspective(1000px) rotateX(2deg)"
-  },
-
-  title: {
-    marginBottom: "5px"
-  },
-
-  subtitle: {
-    fontSize: "13px",
-    color: "#cbd5f5",
-    marginBottom: "20px"
-  },
-
-  input: {
-    width: "100%",
-    padding: "12px",
-    margin: "10px 0",
-    borderRadius: "8px",
-    border: "none",
-    outline: "none"
-  },
-
-  button: {
-    width: "100%",
-    padding: "12px",
-    marginTop: "10px",
-    borderRadius: "8px",
-    border: "none",
-    background: "#3b82f6",
-    color: "white",
-    cursor: "pointer"
-  },
-
-  link: {
-    marginTop: "15px",
-    fontSize: "13px",
-    cursor: "pointer",
-    color: "#93c5fd"
-  }
-};
