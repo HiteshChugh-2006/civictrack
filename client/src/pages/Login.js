@@ -85,3 +85,100 @@ export default function Login() {
     </div>
   );
 }
+const styles = {
+  container: {
+    height: "100vh",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    overflow: "hidden",
+    background: "#0f172a",
+    position: "relative"
+  },
+
+  /* 🔵 FLOATING BLOBS */
+  blob1: {
+    position: "absolute",
+    width: "300px",
+    height: "300px",
+    background: "linear-gradient(135deg, #3b82f6, #9333ea)",
+    borderRadius: "50%",
+    top: "-80px",
+    left: "-80px",
+    filter: "blur(100px)",
+    animation: "float 10s infinite alternate"
+  },
+
+  blob2: {
+    position: "absolute",
+    width: "250px",
+    height: "250px",
+    background: "linear-gradient(135deg, #22c55e, #06b6d4)",
+    borderRadius: "50%",
+    bottom: "-80px",
+    right: "-80px",
+    filter: "blur(100px)",
+    animation: "float 12s infinite alternate"
+  },
+
+  /* ⭐ STARS */
+  stars: {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+    backgroundImage:
+      "radial-gradient(white 1px, transparent 1px)",
+    backgroundSize: "20px 20px",
+    opacity: 0.15
+  },
+
+  /* 🔐 CARD */
+  card: {
+    width: "340px",
+    padding: "30px",
+    borderRadius: "16px",
+    background: "rgba(255,255,255,0.08)",
+    backdropFilter: "blur(10px)",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
+    textAlign: "center",
+    color: "white",
+    transform: "perspective(1000px) rotateX(2deg)"
+  },
+
+  title: {
+    marginBottom: "5px"
+  },
+
+  subtitle: {
+    fontSize: "13px",
+    color: "#cbd5f5",
+    marginBottom: "20px"
+  },
+
+  input: {
+    width: "100%",
+    padding: "12px",
+    margin: "10px 0",
+    borderRadius: "8px",
+    border: "none",
+    outline: "none"
+  },
+
+  button: {
+    width: "100%",
+    padding: "12px",
+    marginTop: "10px",
+    borderRadius: "8px",
+    border: "none",
+    background: "#3b82f6",
+    color: "white",
+    cursor: "pointer"
+  },
+
+  link: {
+    marginTop: "15px",
+    fontSize: "13px",
+    cursor: "pointer",
+    color: "#93c5fd"
+  }
+};
