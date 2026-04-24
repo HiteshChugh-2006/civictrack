@@ -17,14 +17,10 @@ export default function Dashboard() {
   const [isOpen, setIsOpen] = useState(true);
   const [loading, setLoading] = useState(true);
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   useEffect(() => {
     fetchIssues();
-
-    // 🔄 Auto refresh
-    const interval = setInterval(fetchIssues, 5000);
-    return () => clearInterval(interval);
   }, []);
 
   const fetchIssues = async () => {
@@ -50,95 +46,74 @@ export default function Dashboard() {
   };
 
   const pieData = [
-    { name: "Resolved", value: stats.resolved || 0 },
-    { name: "Pending", value: stats.pending || 0 }
-  ];
-
-  const barData = [
-    { name: "Total", value: stats.total },
     { name: "Resolved", value: stats.resolved },
     { name: "Pending", value: stats.pending }
   ];
 
   const COLORS = ["#22c55e", "#f59e0b"];
 
-  if (loading) {
-    return <h2 style={{ padding: "100px" }}>Loading Dashboard...</h2>;
-  }
+  if (loading) return <h2 style={{ padding: 100 }}>Loading...</h2>;
 
   return (
     <div style={styles.wrapper}>
       <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} />
       <Navbar setIsOpen={setIsOpen} />
 
-      <div
-        style={{
-          ...styles.main,
-          marginLeft: isOpen ? "220px" : "20px"
-        }}
-      >
-        <h2 style={styles.welcome}>Welcome, {user?.name} 👋</h2>
-        <h1 style={styles.heading}>Dashboard</h1>
+      <div style={{
+        ...styles.main,
+        marginLeft: isOpen ? "220px" : "20px"
+      }}>
+        <h2 style={styles.welcome}>Welcome, {user?.name}</h2>
+        <h1>Dashboard</h1>
 
         {/* STATS */}
         <div style={styles.grid}>
           <Card title="My Issues" value={stats.myTotal} color="#3b82f6" />
           <Card title="Resolved" value={stats.resolved} color="#22c55e" />
           <Card title="Pending" value={stats.pending} color="#f59e0b" />
-          <Card title="Total Issues" value={stats.total} color="#6366f1" />
+          <Card title="Total" value={stats.total} color="#6366f1" />
         </div>
 
         {/* ACTIONS */}
         <div style={styles.grid}>
           <Action title="📍 Report Issue" onClick={() => navigate("/create")} />
           <Action title="📊 My Issues" onClick={() => navigate("/issues")} />
-          <Action title="🗺️ Map View" onClick={() => navigate("/map")} />
+          <Action title="🗺️ Map" onClick={() => navigate("/map")} />
         </div>
 
         {/* CHARTS */}
         <div style={styles.chartGrid}>
-          {/* PIE */}
           <div style={styles.chartCard}>
-            <h3 style={styles.chartTitle}>Status Distribution</h3>
+            <h3>Status</h3>
 
-            {stats.total === 0 ? (
-              <p>No data available</p>
-            ) : (
-              <ResponsiveContainer width="100%" height={260}>
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    dataKey="value"
-                    outerRadius={90}
-                    innerRadius={40}
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell key={index} fill={COLORS[index]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            )}
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie data={pieData} dataKey="value">
+                  {pieData.map((_, i) => (
+                    <Cell key={i} fill={COLORS[i]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
 
-          {/* BAR */}
           <div style={styles.chartCard}>
-            <h3 style={styles.chartTitle}>Issue Stats</h3>
+            <h3>Stats</h3>
 
-            {stats.total === 0 ? (
-              <p>No data available</p>
-            ) : (
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={barData}>
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="value" fill="#3b82f6" radius={[8, 8, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={[
+                { name: "Total", value: stats.total },
+                { name: "Resolved", value: stats.resolved },
+                { name: "Pending", value: stats.pending }
+              ]}>
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="value" fill="#3b82f6" />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>
@@ -148,115 +123,57 @@ export default function Dashboard() {
   );
 }
 
-
-// 🔹 COMPONENTS
-
+/* COMPONENTS */
 const Card = ({ title, value, color }) => (
-  <div
-    style={{
-      ...styles.card,
-      borderTop: `5px solid ${color}`
-    }}
-    onMouseEnter={(e) => {
-      e.currentTarget.style.transform = "translateY(-6px)";
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.transform = "translateY(0)";
-    }}
-  >
-    <h4 style={styles.cardTitle}>{title}</h4>
+  <div style={{ ...styles.card, borderTop: `4px solid ${color}` }}>
+    <h4>{title}</h4>
     <h2>{value}</h2>
   </div>
 );
 
 const Action = ({ title, onClick }) => (
-  <div
-    onClick={onClick}
-    style={styles.action}
-    onMouseEnter={(e) => {
-      e.currentTarget.style.transform = "translateY(-6px)";
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.transform = "translateY(0)";
-    }}
-  >
-    {title}
-  </div>
+  <div onClick={onClick} style={styles.action}>{title}</div>
 );
 
-
-// 🎨 STYLES
-
+/* STYLES */
 const styles = {
-  wrapper: {
-    display: "flex",
-    background: "#f1f5f9",
-    minHeight: "100vh",
-    overflowX: "hidden"
-  },
+  wrapper: { display: "flex", background: "#f1f5f9", minHeight: "100vh" },
 
-  main: {
-    padding: "30px",
-    width: "100%",
-    marginTop: "60px"
-  },
+  main: { padding: "30px", width: "100%", marginTop: "60px" },
 
-  welcome: {
-    color: "#64748b",
-    marginBottom: "5px"
-  },
-
-  heading: {
-    marginBottom: "20px"
-  },
+  welcome: { color: "#64748b" },
 
   grid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit,minmax(250px,1fr))",
+    gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))",
     gap: "20px",
-    marginBottom: "25px"
+    marginBottom: "20px"
   },
 
   card: {
-    background: "#ffffff",
+    background: "white",
     padding: "20px",
     borderRadius: "12px",
-    boxShadow: "0 4px 10px rgba(0,0,0,0.08)",
-    transition: "0.3s"
-  },
-
-  cardTitle: {
-    color: "#6b7280"
+    boxShadow: "0 4px 10px rgba(0,0,0,0.08)"
   },
 
   action: {
-    background: "#ffffff",
+    background: "white",
     padding: "20px",
     borderRadius: "12px",
     cursor: "pointer",
-    boxShadow: "0 4px 10px rgba(0,0,0,0.08)",
-    textAlign: "center",
-    fontWeight: "500",
-    transition: "0.3s"
+    textAlign: "center"
   },
 
   chartGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))",
-    gap: "20px",
-    marginTop: "20px"
+    gridTemplateColumns: "1fr 1fr",
+    gap: "20px"
   },
 
   chartCard: {
-    background: "#ffffff",
+    background: "white",
     padding: "20px",
-    borderRadius: "14px",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-    width: "100%",
-    minWidth: 0
-  },
-
-  chartTitle: {
-    marginBottom: "10px"
+    borderRadius: "12px"
   }
 };

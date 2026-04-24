@@ -1,13 +1,14 @@
 import axios from "axios";
 
-const API = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || ""
+const api = axios.create({
+  baseURL: "/api"
 });
 
-API.interceptors.request.use((req) => {
+// ✅ Attach token automatically
+api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
-  if (token) req.headers.Authorization = token;
-  return req;
+  if (token) config.headers.Authorization = token;
+  return config;
 });
 
-export default API;
+export default api;

@@ -2,8 +2,7 @@ import { useNavigate } from "react-router-dom";
 
 export default function Sidebar({ isOpen, setIsOpen }) {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user"));
-
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
   const role = user?.role || "user";
 
   const menus = {
@@ -13,36 +12,26 @@ export default function Sidebar({ isOpen, setIsOpen }) {
       { label: "Map", path: "/map" }
     ],
     worker: [
-      { label: "Dashboard", path: "/worker" },
-      { label: "Tasks", path: "/worker" }
+      { label: "Dashboard", path: "/worker" }
     ],
     user: [
       { label: "Dashboard", path: "/dashboard" },
       { label: "Report Issue", path: "/create" },
-      { label: "My Issues", path: "/issues" },
-      { label: "Map", path: "/map" }
+      { label: "My Issues", path: "/issues" }
     ]
   };
 
-  const menuItems = menus[role] || menus.user; // ✅ SAFE FIX
-
   return (
     <>
-      {/* OVERLAY */}
-      {isOpen && (
-        <div style={styles.overlay} onClick={() => setIsOpen(false)} />
-      )}
+      {isOpen && <div style={styles.overlay} onClick={() => setIsOpen(false)} />}
 
-      {/* SIDEBAR */}
-      <div
-        style={{
-          ...styles.sidebar,
-          transform: isOpen ? "translateX(0)" : "translateX(-100%)"
-        }}
-      >
-        <h2>CivicTrack</h2>
+      <div style={{
+        ...styles.sidebar,
+        transform: isOpen ? "translateX(0)" : "translateX(-100%)"
+      }}>
+        <h2 style={{ marginBottom: "20px" }}>CivicTrack</h2>
 
-        {menuItems.map((item, i) => (
+        {menus[role].map((item, i) => (
           <div
             key={i}
             style={styles.item}
@@ -55,14 +44,11 @@ export default function Sidebar({ isOpen, setIsOpen }) {
           </div>
         ))}
 
-        {/* LOGOUT */}
-        <div
-          style={styles.logout}
-          onClick={() => {
-            localStorage.clear();
-            navigate("/");
-          }}
-        >
+        {/* ✅ LOGOUT FIXED POSITION */}
+        <div style={styles.logout} onClick={() => {
+          localStorage.clear();
+          navigate("/");
+        }}>
           Logout
         </div>
       </div>
@@ -73,41 +59,31 @@ export default function Sidebar({ isOpen, setIsOpen }) {
 const styles = {
   sidebar: {
     position: "fixed",
-    top: "60px", // ✅ FIX (don’t overlap navbar)
-    left: 0,
     width: "220px",
-    height: "calc(100% - 60px)", // ✅ FIX
+    height: "100%",
     background: "#0f172a",
     color: "white",
     padding: "20px",
     zIndex: 1001,
     transition: "0.3s"
   },
-
   item: {
     padding: "10px",
-    marginTop: "10px",
+    marginBottom: "10px",
     cursor: "pointer"
   },
-
   logout: {
-  position: "absolute",
-  bottom: "60px", // 👈 move it up (you can tweak: 50–80px)
-  left: "20px",
-  right: "20px",
-  background: "red",
-  padding: "10px",
-  textAlign: "center",
-  cursor: "pointer",
-  borderRadius: "6px"
-},
-
+    marginTop: "30px", // ✅ moved up (not bottom)
+    background: "#ef4444",
+    padding: "10px",
+    borderRadius: "6px",
+    textAlign: "center",
+    cursor: "pointer"
+  },
   overlay: {
     position: "fixed",
-    top: "60px", // ✅ FIX
-    left: 0,
     width: "100%",
-    height: "calc(100% - 60px)",
+    height: "100%",
     background: "rgba(0,0,0,0.3)",
     zIndex: 1000
   }

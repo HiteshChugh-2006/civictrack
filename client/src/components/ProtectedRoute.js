@@ -2,13 +2,13 @@ import { Navigate } from "react-router-dom";
 
 export default function ProtectedRoute({ children, role }) {
   const token = localStorage.getItem("token");
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   if (!token) return <Navigate to="/" replace />;
 
-  // ✅ STRICT ROLE CHECK
+  // ✅ Correct role redirect
   if (role && user?.role !== role) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={`/${user?.role}`} replace />;
   }
 
   return children;
