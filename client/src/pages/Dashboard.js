@@ -91,17 +91,17 @@ export default function Dashboard() {
             <h3 style={styles.chartTitle}>Status Distribution</h3>
             <ResponsiveContainer width="100%" height={220}>
               <PieChart>
-                <Pie
-                  data={pieData}
-                  dataKey="value"
-                  outerRadius={80}
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={index} fill={COLORS[index]} />
-                  ))}
-                </Pie>
-                <Legend />
-              </PieChart>
+  <Pie
+    data={pieData}
+    dataKey="value"
+    outerRadius={80}
+  >
+    {pieData.map((entry, index) => (
+      <Cell key={index} fill={COLORS[index]} />
+    ))}
+  </Pie>
+  <Legend />
+</PieChart>
             </ResponsiveContainer>
           </div>
 
@@ -202,17 +202,21 @@ const styles = {
   },
 
   chartGrid: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "20px"
-  },
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr",
+  gap: "20px",
+  marginTop: "20px",
+  width: "100%"   // ✅ ADD THIS
+},
 
-  chartCard: {
-    background: "#ffffff",
-    padding: "20px",
-    borderRadius: "14px",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.08)"
-  },
+ chartCard: {
+  background: "#ffffff",
+  padding: "20px",
+  borderRadius: "14px",
+  boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+  width: "100%",        // ✅ ADD
+  minWidth: "0",        // ✅ VERY IMPORTANT (fix overflow bug)
+},
 
   chartTitle: {
     marginBottom: "10px"
