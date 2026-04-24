@@ -13,7 +13,7 @@ export default function AdminDashboard() {
   const [previewImage, setPreviewImage] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
 
-  const token = localStorage.getItem("token");
+const token = localStorage.getItem("token") || "";
 
   useEffect(() => {
     fetchData(); // ❌ removed interval → smoother UX
@@ -137,27 +137,26 @@ export default function AdminDashboard() {
 
               {/* 🖼 USER IMAGE */}
               {issue.image && (
-                <img
-                  src={`/${issue.image}`}
-                  alt="issue"
-                  style={styles.image}
-                  onClick={() => setPreviewImage(`/${issue.image}`)}
-                />
-              )}
+  <img
+    src={`/uploads/${issue.image}`}
+    alt="issue"
+    style={styles.image}
+    onClick={() => setPreviewImage(`/uploads/${issue.image}`)}
+  />
+)}
 
-              {/* 📸 COMPLETED IMAGE */}
-              {issue.completionImage && (
-                <>
-                  <p style={{ marginTop: "10px" }}>📸 Completed Work:</p>
-                  <img
-                    src={`/${issue.completionImage}`}
-                    alt="completed"
-                    style={styles.image}
-                    onClick={() => setPreviewImage(`/${issue.completionImage}`)}
-                  />
-                </>
-              )}
-
+{issue.completionImage && (
+  <>
+    <p style={{ marginTop: "10px" }}>📸 Completed Work:</p>
+    <img
+      src={`/uploads/${issue.completionImage}`}
+      alt="completed"
+      style={styles.image}
+      onClick={() => setPreviewImage(`/uploads/${issue.completionImage}`)}
+    />
+  </>
+)}
+console.log(issues);
               {issue.remarks && (
                 <p style={{ fontSize: "13px", marginTop: "5px" }}>
                   📝 {issue.remarks}

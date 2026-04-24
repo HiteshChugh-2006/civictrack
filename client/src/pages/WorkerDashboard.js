@@ -12,8 +12,7 @@ export default function WorkerDashboard() {
   const [previewImage, setPreviewImage] = useState(null);
   const [selectedImage, setSelectedImage] = useState({});
   const [remarks, setRemarks] = useState({});
-
-  const token = localStorage.getItem("token");
+const token = localStorage.getItem("token") || "";
 
   useEffect(() => {
     fetchIssues();
@@ -114,27 +113,27 @@ export default function WorkerDashboard() {
             </p>
 
             {/* USER IMAGE */}
-            {issue.image && (
-              <img
-                src={`/${issue.image}`}
-                alt="issue"
-                style={styles.image}
-                onClick={() => setPreviewImage(`/${issue.image}`)}
-              />
-            )}
+{issue.image && (
+  <img
+    src={`/uploads/${issue.image}`}
+    alt="issue"
+    style={styles.image}
+    onClick={() => setPreviewImage(`/uploads/${issue.image}`)}
+  />
+)}
 
-            {/* COMPLETED IMAGE */}
-            {issue.completionImage && (
-              <>
-                <p>📸 Completed:</p>
-                <img
-                  src={`/${issue.completionImage}`}
-                  alt="completed"
-                  style={styles.image}
-                />
-              </>
-            )}
-
+{/* COMPLETED IMAGE */}
+{issue.completionImage && (
+  <>
+    <p>📸 Completed:</p>
+    <img
+      src={`/uploads/${issue.completionImage}`}
+      alt="completed"
+      style={styles.image}
+    />
+  </>
+)}
+console.log(issues);
             <StatusBadge status={issue.status} />
 
             <div style={{ marginTop: "10px" }}>
