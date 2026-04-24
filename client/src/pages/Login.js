@@ -11,7 +11,7 @@ export default function Login() {
     e.preventDefault();
 
     if (!data.email || !data.password) {
-      alert("⚠️ Please fill all fields");
+      alert("Please fill all fields");
       return;
     }
 
@@ -21,17 +21,15 @@ export default function Login() {
       const res = await axios.post("/api/auth/login", data);
       const { token, user } = res.data;
 
-      // ✅ store data
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
 
-      // ✅ role-based redirect
       if (user.role === "admin") navigate("/admin");
       else if (user.role === "worker") navigate("/worker");
       else navigate("/dashboard");
 
     } catch (err) {
-      alert(err?.response?.data || "Login Failed ❌");
+      alert("Login Failed");
     } finally {
       setLoading(false);
     }
@@ -39,17 +37,24 @@ export default function Login() {
 
   return (
     <div style={styles.container}>
+
+      {/* 🌌 BACKGROUND BLOBS */}
+      <div style={styles.blob1}></div>
+      <div style={styles.blob2}></div>
+
+      {/* ⭐ STARS */}
+      <div style={styles.stars}></div>
+
+      {/* 🔐 LOGIN CARD */}
       <div style={styles.card}>
 
-        <h1 style={styles.logo}>🚀 CivicTrack</h1>
-        <p style={styles.subtitle}>
-          Smart Civic Issue Reporting System
-        </p>
+        <h1 style={styles.title}>CivicTrack</h1>
+        <p style={styles.subtitle}>Manage civic issues smarter</p>
 
         <form onSubmit={handleSubmit}>
           <input
             type="email"
-            placeholder="Enter Email"
+            placeholder="Email"
             value={data.email}
             style={styles.input}
             onChange={(e) =>
@@ -59,7 +64,7 @@ export default function Login() {
 
           <input
             type="password"
-            placeholder="Enter Password"
+            placeholder="Password"
             value={data.password}
             style={styles.input}
             onChange={(e) =>
@@ -67,83 +72,16 @@ export default function Login() {
             }
           />
 
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              ...styles.button,
-              opacity: loading ? 0.7 : 1
-            }}
-          >
-            {loading ? "Logging in..." : "Login"}
+          <button type="submit" style={styles.button}>
+            {loading ? "Logging..." : "Login"}
           </button>
         </form>
 
         <p style={styles.link} onClick={() => navigate("/register")}>
-          Don’t have an account? Sign up
+          Create new account
         </p>
 
       </div>
     </div>
   );
 }
-
-// 🎨 STYLES (NO ERROR VERSION)
-const styles = {
-  container: {
-    height: "100vh",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    background: "linear-gradient(135deg, #667eea, #764ba2)"
-  },
-
-  card: {
-    width: "340px",
-    padding: "30px",
-    borderRadius: "18px",
-    background: "rgba(255,255,255,0.15)",
-    backdropFilter: "blur(15px)",
-    boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
-    textAlign: "center",
-    color: "white"
-  },
-
-  logo: {
-    marginBottom: "5px"
-  },
-
-  subtitle: {
-    fontSize: "13px",
-    marginBottom: "20px",
-    color: "#e0e7ff"
-  },
-
-  input: {
-    width: "100%",
-    padding: "12px",
-    margin: "10px 0",
-    borderRadius: "10px",
-    border: "none",
-    outline: "none"
-  },
-
-  button: {
-    width: "100%",
-    padding: "12px",
-    marginTop: "10px",
-    borderRadius: "10px",
-    border: "none",
-    background: "#22c55e",
-    color: "white",
-    fontWeight: "bold",
-    cursor: "pointer"
-  },
-
-  link: {
-    marginTop: "15px",
-    fontSize: "13px",
-    cursor: "pointer",
-    color: "#c7d2fe"
-  }
-};
