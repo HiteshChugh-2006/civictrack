@@ -2,10 +2,9 @@ import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 import Chatbot from "../components/Chatbot";
 import { useEffect, useState } from "react";
-import API from "../api"; // ✅ FIXED
+import api from "../api";
 
 export default function WorkerDashboard() {
-  const BASE_URL = process.env.REACT_APP_API_URL || "";
   const [isOpen, setIsOpen] = useState(true);
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,30 +21,31 @@ export default function WorkerDashboard() {
 
   const fetchIssues = async () => {
     try {
-      const res = await API.get("/api/issues/worker"); // ✅ FIXED
-      setIssues(res.data);
+      const res = await api.get("/issues/worker");
+      setIssues(res.data || []);
     } catch (err) {
-      console.error(err);
+      console.log(err);
     } finally {
       setLoading(false);
     }
   };
 
+  // ▶ START WORK
   const updateStatus = async (id, status) => {
     try {
       setActionLoading(id);
 
-      await API.put(`/api/issues/${id}`, { status }); // ✅ FIXED
+      await api.put(`/issues/${id}`, { status });
 
       fetchIssues();
-    } catch (err) {
-      console.error(err);
+    } catch {
       alert("Update failed ❌");
     } finally {
       setActionLoading(null);
     }
   };
 
+  // 📤 SUBMIT WORK
   const submitWork = async (id) => {
     try {
       if (!selectedImage[id]) {
@@ -59,15 +59,11 @@ export default function WorkerDashboard() {
       formData.append("image", selectedImage[id]);
       formData.append("remarks", remarks[id] || "");
 
-      await API.put(`/api/issues/complete/${id}`, formData, {
-        headers: { "Content-Type": "multipart/form-data" }
-      });
+      await api.put(`/issues/complete/${id}`, formData);
 
       alert("Work submitted ✅");
       fetchIssues();
-
-    } catch (err) {
-      console.error(err);
+    } catch {
       alert("Submission failed ❌");
     } finally {
       setActionLoading(null);
@@ -81,13 +77,15 @@ export default function WorkerDashboard() {
   return (
     <div>
       <Navbar setIsOpen={setIsOpen} />
-      <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} role="worker" />
+      <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} />
 
-      <div style={{
-        marginTop: "60px",
-        marginLeft: isOpen ? "220px" : "0",
-        padding: "20px",
-      }}>
+      <div
+        style={{
+          marginTop: "60px",
+          marginLeft: isOpen ? "220px" : "0",
+          padding: "20px",
+        }}
+      >
         <h1>👷 Worker Dashboard</h1>
 
         {issues.length === 0 && <p>No assigned tasks 🚀</p>}
@@ -97,27 +95,30 @@ export default function WorkerDashboard() {
             <h3>{issue.title}</h3>
             <p>{issue.description}</p>
 
-            <p style={{ fontSize: "13px", color: "#555" }}>
-              👤 Reported by: <b>{issue.createdBy?.name || "Unknown"}</b>
+            <p style={styles.user}>
+              👤 {issue.createdBy?.name || "Unknown"}
             </p>
 
+            {/* 📷 USER IMAGE */}
             {issue.image && (
               <img
-                src={`${BASE_URL}/uploads/${issue.image}`}
-                alt=""
+                src={`/uploads/${issue.image}`}
+                alt="issue"
                 style={styles.image}
-                onClick={() => setPreviewImage(`/uploads/${issue.image}`)}
+                onClick={() =>
+                  setPreviewImage(`/uploads/${issue.image}`)
+                }
               />
             )}
 
+            {/* 📸 COMPLETION IMAGE */}
             {issue.completionImage && (
               <>
                 <p>📸 Completed:</p>
                 <img
-                 src={`${BASE_URL}/uploads/${issue.completionImage}`}
+                  src={`/uploads/${issue.completionImage}`}
+                  alt="completed"
                   style={styles.image}
-                  onClick={() => setPreviewImage(`/uploads/${issue.completionImage}`)}
-                  alt=""
                 />
               </>
             )}
@@ -127,13 +128,18 @@ export default function WorkerDashboard() {
             <div style={{ marginTop: "10px" }}>
 
               {/* ▶ START */}
-              {issue.status !== "in-progress" && issue.status !== "resolved" && (
+              {(issue.status === "assigned" ||
+                issue.status === "submitted") && (
                 <button
                   style={styles.startBtn}
                   disabled={actionLoading === issue._id}
-                  onClick={() => updateStatus(issue._id, "in-progress")}
+                  onClick={() =>
+                    updateStatus(issue._id, "in-progress")
+                  }
                 >
-                  {actionLoading === issue._id ? "Starting..." : "▶ Start Work"}
+                  {actionLoading === issue._id
+                    ? "Starting..."
+                    : "▶ Start Work"}
                 </button>
               )}
 
@@ -143,21 +149,21 @@ export default function WorkerDashboard() {
                   <input
                     type="file"
                     onChange={(e) =>
-                      setSelectedImage(prev => ({
-                        ...prev,
+                      setSelectedImage({
+                        ...selectedImage,
                         [issue._id]: e.target.files[0],
-                      }))
+                      })
                     }
                   />
 
                   <textarea
                     placeholder="Add remarks..."
-                    style={{ width: "100%", marginTop: "5px" }}
+                    style={styles.textarea}
                     onChange={(e) =>
-                      setRemarks(prev => ({
-                        ...prev,
+                      setRemarks({
+                        ...remarks,
                         [issue._id]: e.target.value,
-                      }))
+                      })
                     }
                   />
 
@@ -173,6 +179,7 @@ export default function WorkerDashboard() {
                 </div>
               )}
 
+              {/* ✅ DONE */}
               {issue.status === "resolved" && (
                 <span style={styles.doneText}>✔ Completed</span>
               )}
@@ -180,9 +187,17 @@ export default function WorkerDashboard() {
           </div>
         ))}
 
+        {/* 🔍 IMAGE PREVIEW */}
         {previewImage && (
-          <div style={styles.previewOverlay} onClick={() => setPreviewImage(null)}>
-            <img src={previewImage} style={styles.previewImage} alt="" />
+          <div
+            style={styles.previewOverlay}
+            onClick={() => setPreviewImage(null)}
+          >
+            <img
+              src={previewImage}
+              style={styles.previewImage}
+              alt="preview"
+            />
           </div>
         )}
       </div>
@@ -191,6 +206,7 @@ export default function WorkerDashboard() {
     </div>
   );
 }
+
 
 // 🔹 STATUS BADGE
 function StatusBadge({ status }) {
@@ -224,12 +240,16 @@ function StatusBadge({ status }) {
 // 🎨 STYLES
 const styles = {
   card: {
-    background: "rgba(255,255,255,0.9)",
-    backdropFilter: "blur(12px)",
-    borderRadius: "16px",
+    background: "white",
+    borderRadius: "12px",
     padding: "20px",
-    boxShadow: "0 10px 25px rgba(0,0,0,0.12)",
     marginBottom: "20px",
+    boxShadow: "0 5px 15px rgba(0,0,0,0.08)"
+  },
+
+  user: {
+    fontSize: "13px",
+    color: "#555"
   },
 
   image: {
@@ -238,7 +258,37 @@ const styles = {
     objectFit: "cover",
     borderRadius: "10px",
     marginTop: "10px",
+    cursor: "pointer"
+  },
+
+  textarea: {
+    width: "100%",
+    marginTop: "5px",
+    padding: "6px"
+  },
+
+  startBtn: {
+    background: "#3b82f6",
+    color: "white",
+    border: "none",
+    padding: "8px 14px",
+    borderRadius: "6px",
+    cursor: "pointer"
+  },
+
+  doneBtn: {
+    background: "#22c55e",
+    color: "white",
+    border: "none",
+    padding: "8px 14px",
+    borderRadius: "6px",
     cursor: "pointer",
+    marginTop: "5px"
+  },
+
+  doneText: {
+    color: "#16a34a",
+    fontWeight: "bold"
   },
 
   previewOverlay: {
@@ -251,36 +301,12 @@ const styles = {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    zIndex: 9999,
+    zIndex: 9999
   },
 
   previewImage: {
     maxWidth: "90%",
     maxHeight: "90%",
-    borderRadius: "10px",
-  },
-
-  startBtn: {
-    background: "#3b82f6",
-    color: "white",
-    border: "none",
-    padding: "8px 14px",
-    borderRadius: "6px",
-    cursor: "pointer",
-  },
-
-  doneBtn: {
-    background: "#22c55e",
-    color: "white",
-    border: "none",
-    padding: "8px 14px",
-    borderRadius: "6px",
-    cursor: "pointer",
-    marginTop: "5px",
-  },
-
-  doneText: {
-    color: "#16a34a",
-    fontWeight: "bold",
-  },
+    borderRadius: "10px"
+  }
 };
