@@ -92,3 +92,58 @@ export default function Login() {
     </div>
   );
 }
+const styles = {
+  container: {
+    height: "100vh",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    background: "linear-gradient(135deg, #eef2ff, #f8fafc)"
+  },
+
+  card: {
+    background: "rgba(255,255,255,0.8)",
+    backdropFilter: "blur(10px)",
+    padding: "30px",
+    borderRadius: "15px",
+    boxShadow: "0 10px 25px rgba(0,0,0,0.15)",
+    width: "320px",
+    textAlign: "center"
+  },
+
+  title: {
+    marginBottom: "20px"
+  },
+
+  input: {
+    width: "100%",
+    padding: "12px",
+    margin: "10px 0",
+    borderRadius: "8px",
+    border: "1px solid #ccc",
+    outline: "none"
+  },
+
+  button: {
+    width: "100%",
+    padding: "12px",
+    background: "#e53935",
+    color: "white",
+    border: "none",
+    borderRadius: "8px",
+    marginTop: "10px",
+    cursor: "pointer"
+  },
+
+  link: {
+    color: "#2563eb",
+    cursor: "pointer",
+    marginTop: "10px"
+  },
+
+  forgot: {
+    color: "#ef4444",
+    fontSize: "12px",
+    marginTop: "5px"
+  }
+};
