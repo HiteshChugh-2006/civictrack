@@ -59,10 +59,12 @@ export default function Dashboard() {
       <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} />
       <Navbar setIsOpen={setIsOpen} />
 
-      <div style={{
-        ...styles.main,
-        marginLeft: isOpen ? "220px" : "0"
-      }}>
+      <div
+        style={{
+          ...styles.main,
+          marginLeft: isOpen ? "240px" : "20px"
+        }}
+      >
         <h2 style={styles.welcome}>Welcome, {user?.name} 👋</h2>
         <h1 style={styles.heading}>Dashboard</h1>
 
@@ -83,16 +85,16 @@ export default function Dashboard() {
 
         {/* CHARTS */}
         <div style={styles.chartGrid}>
-          
+
           {/* PIE */}
           <div style={styles.chartCard}>
             <h3>Status Distribution</h3>
-            <ResponsiveContainer width="100%" height={250}>
+            <ResponsiveContainer width="100%" height={220}>
               <PieChart>
                 <Pie
                   data={pieData}
                   dataKey="value"
-                  outerRadius={90}
+                  outerRadius={80}
                   label
                 >
                   {pieData.map((entry, index) => (
@@ -107,7 +109,7 @@ export default function Dashboard() {
           {/* BAR */}
           <div style={styles.chartCard}>
             <h3>Issue Stats</h3>
-            <ResponsiveContainer width="100%" height={250}>
+            <ResponsiveContainer width="100%" height={220}>
               <BarChart data={[
                 { name: "Total", value: stats.total },
                 { name: "Resolved", value: stats.resolved },
@@ -116,7 +118,7 @@ export default function Dashboard() {
                 <XAxis dataKey="name" />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="value" fill="#3b82f6" />
+                <Bar dataKey="value" fill="#3b82f6" radius={[6,6,0,0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -130,14 +132,14 @@ export default function Dashboard() {
 }
 
 
-// 🔹 COMPONENTS
+// COMPONENTS
 
 const Card = ({ title, value, color }) => (
   <div style={{
     ...styles.card,
-    borderTop: `4px solid ${color}`
+    borderTop: `5px solid ${color}`
   }}>
-    <h4 style={{ color: "#555" }}>{title}</h4>
+    <h4 style={{ color: "#64748b" }}>{title}</h4>
     <h2>{value}</h2>
   </div>
 );
@@ -149,7 +151,7 @@ const Action = ({ title, onClick }) => (
 );
 
 
-// 🎨 STYLES
+// STYLES
 
 const styles = {
   wrapper: {
@@ -161,7 +163,8 @@ const styles = {
   main: {
     padding: "30px",
     width: "100%",
-    marginTop: "60px"
+    marginTop: "60px",
+    maxWidth: "1200px"
   },
 
   welcome: {
@@ -180,30 +183,31 @@ const styles = {
   },
 
   card: {
-    background: "white",
+    background: "#fff",
     padding: "20px",
     borderRadius: "12px",
-    boxShadow: "0 6px 18px rgba(0,0,0,0.08)"
+    boxShadow: "0 4px 12px rgba(0,0,0,0.08)"
   },
 
   action: {
-    background: "white",
+    background: "#fff",
     padding: "20px",
     borderRadius: "12px",
     cursor: "pointer",
-    boxShadow: "0 5px 12px rgba(0,0,0,0.08)"
+    boxShadow: "0 4px 10px rgba(0,0,0,0.08)"
   },
 
   chartGrid: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
-    gap: "20px"
+    gap: "20px",
+    marginTop: "20px"
   },
 
   chartCard: {
-    background: "white",
+    background: "#fff",
     padding: "20px",
-    borderRadius: "12px",
-    boxShadow: "0 6px 18px rgba(0,0,0,0.08)"
+    borderRadius: "14px",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.08)"
   }
 };
