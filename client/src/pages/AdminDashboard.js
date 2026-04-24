@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import API from "../api"; // ✅ FIXED
 
 export default function AdminDashboard() {
+  const BASE_URL = process.env.REACT_APP_API_URL || "";
   const [issues, setIssues] = useState([]);
   const [workers, setWorkers] = useState([]);
   const [filter, setFilter] = useState("all");
@@ -120,7 +121,7 @@ export default function AdminDashboard() {
             {/* 🖼 ISSUE IMAGE */}
             {issue.image && (
               <img
-                src={`/uploads/${issue.image}`}
+                src={`${BASE_URL}/uploads/${issue.image}`}
                 style={img}
                 onClick={() =>
                   setPreviewImage(`/uploads/${issue.image}`)
@@ -133,7 +134,7 @@ export default function AdminDashboard() {
               <>
                 <p>📸 Completed:</p>
                 <img
-                  src={`/uploads/${issue.completionImage}`}
+                  src={`${BASE_URL}/uploads/${issue.completionImage}`}
                   style={img}
                   onClick={() =>
                     setPreviewImage(

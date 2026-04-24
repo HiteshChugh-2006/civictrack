@@ -6,11 +6,9 @@ export default function ProtectedRoute({ children, role }) {
 
   if (!token) return <Navigate to="/" replace />;
 
-  // ✅ FIXED ROLE REDIRECT
+  // ✅ STRICT ROLE CHECK
   if (role && user?.role !== role) {
-    if (user?.role === "admin") return <Navigate to="/admin" replace />;
-    if (user?.role === "worker") return <Navigate to="/worker" replace />;
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return children;

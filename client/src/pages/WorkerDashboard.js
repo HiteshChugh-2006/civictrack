@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import API from "../api"; // ✅ FIXED
 
 export default function WorkerDashboard() {
+  const BASE_URL = process.env.REACT_APP_API_URL || "";
   const [isOpen, setIsOpen] = useState(true);
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -102,7 +103,7 @@ export default function WorkerDashboard() {
 
             {issue.image && (
               <img
-                src={`/uploads/${issue.image}`}
+                src={`${BASE_URL}/uploads/${issue.image}`}
                 alt=""
                 style={styles.image}
                 onClick={() => setPreviewImage(`/uploads/${issue.image}`)}
@@ -113,7 +114,7 @@ export default function WorkerDashboard() {
               <>
                 <p>📸 Completed:</p>
                 <img
-                  src={`/uploads/${issue.completionImage}`}
+                 src={`${BASE_URL}/uploads/${issue.completionImage}`}
                   style={styles.image}
                   onClick={() => setPreviewImage(`/uploads/${issue.completionImage}`)}
                   alt=""

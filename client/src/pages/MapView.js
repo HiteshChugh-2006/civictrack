@@ -22,6 +22,7 @@ const icons = {
 };
 
 export default function MapView() {
+  const BASE_URL = process.env.REACT_APP_API_URL || "";
   const [issues, setIssues] = useState([]);
   const [filter, setFilter] = useState("all");
 
@@ -81,7 +82,7 @@ export default function MapView() {
 
                 {i.image && (
                   <img
-                    src={`/uploads/${i.image}`}
+                    src={`${BASE_URL}/uploads/${issue.image}`}
                     style={styles.image}
                     alt=""
                   />

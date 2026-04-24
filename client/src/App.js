@@ -1,5 +1,4 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import "leaflet/dist/leaflet.css";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -24,39 +23,36 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* 🔥 SMART DASHBOARD ROUTING */}
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              {user?.role === "admin" ? (
-                <Navigate to="/admin" />
-              ) : user?.role === "worker" ? (
-                <Navigate to="/worker" />
-              ) : (
-                <Dashboard />
-              )}
-            </ProtectedRoute>
-          }
-        />
-<Route
-  path="/admin/issues"
-  element={
-    <ProtectedRoute role="admin">
-      <AdminDashboard />
-    </ProtectedRoute>
-  }
-/>
         {/* USER */}
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            {user?.role === "admin" ? (
+              <Navigate to="/admin" />
+            ) : user?.role === "worker" ? (
+              <Navigate to="/worker" />
+            ) : (
+              <Dashboard />
+            )}
+          </ProtectedRoute>
+        } />
+
         <Route path="/create" element={<ProtectedRoute><CreateIssue /></ProtectedRoute>} />
         <Route path="/issues" element={<ProtectedRoute><Issues /></ProtectedRoute>} />
         <Route path="/map" element={<ProtectedRoute><MapView /></ProtectedRoute>} />
 
         {/* ADMIN */}
-        <Route path="/admin" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
+        <Route path="/admin" element={
+          <ProtectedRoute role="admin">
+            <AdminDashboard />
+          </ProtectedRoute>
+        } />
 
         {/* WORKER */}
-        <Route path="/worker" element={<ProtectedRoute role="worker"><WorkerDashboard /></ProtectedRoute>} />
+        <Route path="/worker" element={
+          <ProtectedRoute role="worker">
+            <WorkerDashboard />
+          </ProtectedRoute>
+        } />
 
         <Route path="/about" element={<About />} />
 

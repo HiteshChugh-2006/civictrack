@@ -19,7 +19,7 @@ export default function CreateIssue() {
     lat: "",
     lng: ""
   });
-
+const BASE_URL = process.env.REACT_APP_API_URL || "";
   const [image, setImage] = useState(null);
   const [drag, setDrag] = useState(false);
   const [loading, setLoading] = useState(false);

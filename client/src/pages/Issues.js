@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import API from "../api"; // ✅ FIXED
 
 export default function Issues() {
+  const BASE_URL = process.env.REACT_APP_API_URL || "";
   const [issues, setIssues] = useState([]);
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -40,7 +41,7 @@ export default function Issues() {
           {/* 🖼 ORIGINAL IMAGE */}
           {issue.image && (
             <img
-              src={`/uploads/${issue.image}`}
+              src={`${BASE_URL}/uploads/${issue.image}`}
               style={img}
               alt=""
             />
@@ -51,7 +52,7 @@ export default function Issues() {
             <>
               <p>Completed:</p>
               <img
-                src={`/uploads/${issue.completionImage}`}
+                src={`${BASE_URL}/uploads/${issue.completionImage}`}
                 style={img}
                 alt=""
               />

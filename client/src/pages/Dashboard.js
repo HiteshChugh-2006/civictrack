@@ -3,10 +3,11 @@ import Navbar from "../components/Navbar";
 import Chatbot from "../components/Chatbot";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import API from "../api"; // ✅ FIXED
+import API from "../api";
 
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer
+  PieChart, Pie, Cell,
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend
 } from "recharts";
 
 export default function Dashboard() {
@@ -16,18 +17,15 @@ export default function Dashboard() {
   const [isOpen, setIsOpen] = useState(true);
   const [loading, setLoading] = useState(true);
 
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const user = JSON.parse(localStorage.getItem("user"));
 
   useEffect(() => {
     fetchIssues();
-
-    const interval = setInterval(fetchIssues, 5000); // ✅ LIVE UPDATE
-    return () => clearInterval(interval);
   }, []);
 
   const fetchIssues = async () => {
     try {
-      const res = await API.get("/api/issues"); // ✅ FIXED
+      const res = await API.get("/api/issues");
       setIssues(res.data);
     } catch (err) {
       console.log(err);
@@ -36,17 +34,14 @@ export default function Dashboard() {
     }
   };
 
-  const myIssues = issues.filter(
-    (i) => String(i.createdBy?._id) === String(user?._id)
-  );
+  // ✅ FIXED
+  const myIssues = issues;
 
   const stats = {
     myTotal: myIssues.length,
     total: issues.length,
     resolved: issues.filter(i => i.status === "resolved").length,
-    pending: issues.filter(i =>
-      ["submitted", "assigned", "in-progress"].includes(i.status)
-    ).length
+    pending: issues.filter(i => i.status !== "resolved").length
   };
 
   if (loading) return <h2 style={{ padding: "100px" }}>Loading...</h2>;
@@ -65,17 +60,36 @@ export default function Dashboard() {
           <Card title="My Issues" value={stats.myTotal} />
           <Card title="Resolved" value={stats.resolved} />
           <Card title="Pending" value={stats.pending} />
-          <Card title="Total Issues" value={stats.total} />
+          <Card title="Total" value={stats.total} />
         </div>
 
         {/* ACTIONS */}
         <div style={grid}>
           <Action title="📍 Report Issue" onClick={() => navigate("/create")} />
           <Action title="📊 My Issues" onClick={() => navigate("/issues")} />
-          <Action title="🗺️ Map View" onClick={() => navigate("/map")} />
+          <Action title="🗺️ Map" onClick={() => navigate("/map")} />
         </div>
 
-        {/* CHART */}
+        {/* PIE CHART */}
+        <ResponsiveContainer width="100%" height={250}>
+          <PieChart>
+            <Pie
+              data={[
+                { name: "Resolved", value: stats.resolved },
+                { name: "Pending", value: stats.pending }
+              ]}
+              dataKey="value"
+              outerRadius={80}
+            >
+              <Cell fill="#22c55e" />
+              <Cell fill="#f59e0b" />
+            </Pie>
+            <Tooltip />
+            <Legend />
+          </PieChart>
+        </ResponsiveContainer>
+
+        {/* BAR CHART */}
         <ResponsiveContainer width="100%" height={250}>
           <BarChart data={[
             { name: "Total", value: stats.total },
@@ -85,7 +99,11 @@ export default function Dashboard() {
             <XAxis dataKey="name" />
             <YAxis />
             <Tooltip />
-            <Bar dataKey="value" />
+            <Bar dataKey="value">
+              <Cell fill="#3b82f6" />
+              <Cell fill="#22c55e" />
+              <Cell fill="#f59e0b" />
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
 
@@ -104,24 +122,14 @@ const grid = {
 };
 
 const Card = ({ title, value }) => (
-  <div style={{
-    background: "white",
-    padding: "20px",
-    borderRadius: "12px",
-    boxShadow: "0 5px 15px rgba(0,0,0,0.1)"
-  }}>
+  <div style={{ background: "white", padding: "20px", borderRadius: "12px" }}>
     <h4>{title}</h4>
     <h2>{value}</h2>
   </div>
 );
 
 const Action = ({ title, onClick }) => (
-  <div onClick={onClick} style={{
-    background: "white",
-    padding: "20px",
-    borderRadius: "12px",
-    cursor: "pointer"
-  }}>
+  <div onClick={onClick} style={{ background: "white", padding: "20px", borderRadius: "12px", cursor: "pointer" }}>
     {title}
   </div>
 );
