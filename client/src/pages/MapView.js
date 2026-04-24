@@ -69,30 +69,32 @@ export default function MapView() {
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-        {filteredIssues.map((i) =>
-          i.location ? (
-            <Marker
-              key={i._id}
-              position={[i.location.lat, i.location.lng]}
-              icon={icons[i.status] || icons.pending}
-            >
-              <Popup>
-                <b>{i.title}</b>
-                <p>{i.description}</p>
+   {filteredIssues.map((i) => (
+  i.location && (
+    <Marker
+      key={i._id}
+      position={[i.location.lat, i.location.lng]}
+      icon={icons[i.status] || icons.pending}
+    >
+      <Popup>
+        <div style={{ width: "200px" }}>
+          <b>{i.title}</b>
+          <p>{i.description}</p>
 
-                {i.image && (
-                  <img
-                    src={`${BASE_URL}/uploads/${issue.image}`}
-                    style={styles.image}
-                    alt=""
-                  />
-                )}
+          {i.image && (
+            <img
+              src={`/uploads/${i.image}`}
+              style={styles.image}
+              alt=""
+            />
+          )}
 
-                <p>Status: {i.status}</p>
-              </Popup>
-            </Marker>
-          ) : null
-        )}
+          <p>Status: {i.status}</p>
+        </div>
+      </Popup>
+    </Marker>
+  )
+))}
       </MapContainer>
     </div>
   );
