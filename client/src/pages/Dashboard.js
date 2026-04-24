@@ -62,7 +62,7 @@ export default function Dashboard() {
       <div
         style={{
           ...styles.main,
-          marginLeft: isOpen ? "240px" : "20px"
+          marginLeft: isOpen ? "220px" : "20px"
         }}
       >
         <h2 style={styles.welcome}>Welcome, {user?.name} 👋</h2>
@@ -153,18 +153,18 @@ const Action = ({ title, onClick }) => (
 // 🎨 STYLES
 
 const styles = {
-  wrapper: {
-    display: "flex",
-    background: "#f1f5f9",
-    minHeight: "100vh"
-  },
+ wrapper: {
+  display: "flex",
+  background: "#f1f5f9",
+  minHeight: "100vh",
+  overflowX: "hidden"   // ✅ ADD
+},
 
-  main: {
-    padding: "30px",
-    width: "100%",
-    marginTop: "60px",
-    maxWidth: "1200px"
-  },
+main: {
+  padding: "30px",
+  width: "100%",
+  marginTop: "60px"
+},
 
   welcome: {
     color: "#64748b",
@@ -176,11 +176,11 @@ const styles = {
   },
 
   grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))",
-    gap: "15px",
-    marginBottom: "20px"
-  },
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit,minmax(250px,1fr))",
+  gap: "20px",
+  marginBottom: "25px"
+},
 
   card: {
     background: "#ffffff",
@@ -193,13 +193,15 @@ const styles = {
     color: "#6b7280"
   },
 
-  action: {
-    background: "#ffffff",
-    padding: "20px",
-    borderRadius: "12px",
-    cursor: "pointer",
-    boxShadow: "0 4px 10px rgba(0,0,0,0.08)"
-  },
+ action: {
+  background: "#ffffff",
+  padding: "20px",
+  borderRadius: "12px",
+  cursor: "pointer",
+  boxShadow: "0 4px 10px rgba(0,0,0,0.08)",
+  textAlign: "center",
+  fontWeight: "500"
+},
 
   chartGrid: {
   display: "grid",
