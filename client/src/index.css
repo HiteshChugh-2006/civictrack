@@ -43,13 +43,12 @@ html, body, #root {
   height: 100%;
   margin: 0;
 }
-@keyframes fadeIn {
+@keyframes float {
   from {
-    opacity: 0;
-    transform: translateY(15px);
+    transform: translateY(0px);
   }
   to {
-    opacity: 1;
-    transform: translateY(0);
+    transform: translateY(30px);
   }
+}
 }
