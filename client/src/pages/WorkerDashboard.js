@@ -8,7 +8,10 @@ export default function WorkerDashboard() {
   const [isOpen, setIsOpen] = useState(true);
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
+  const [selectedImage, setSelectedImage] = useState({});
+  const [remarks, setRemarks] = useState({});
 
   const token = localStorage.getItem("token");
 
@@ -21,7 +24,7 @@ export default function WorkerDashboard() {
   const fetchIssues = async () => {
     try {
       const res = await axios.get("/api/issues/worker", {
-        headers: { Authorization: token },
+        headers: { Authorization: `Bearer ${token}` },
       });
       setIssues(res.data);
       setLoading(false);
@@ -31,18 +34,52 @@ export default function WorkerDashboard() {
     }
   };
 
-  // ✅ UPDATE STATUS
   const updateStatus = async (id, status) => {
     try {
+      setActionLoading(id);
+
       await axios.put(
         `/api/issues/${id}`,
         { status },
-        { headers: { Authorization: token } }
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
+
       fetchIssues();
     } catch (err) {
-      console.log(err);
       alert("Update failed ❌");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const submitWork = async (id) => {
+    try {
+      if (!selectedImage[id]) {
+        alert("Upload image first ❗");
+        return;
+      }
+
+      setActionLoading(id);
+
+      const formData = new FormData();
+      formData.append("image", selectedImage[id]);
+      formData.append("remarks", remarks[id] || "");
+
+      await axios.put(`/api/issues/complete/${id}`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      alert("Work submitted ✅");
+      fetchIssues();
+    } catch (err) {
+      alert("Submission failed ❌");
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -71,84 +108,122 @@ export default function WorkerDashboard() {
             <h3>{issue.title}</h3>
             <p>{issue.description}</p>
 
-            {/* 👤 REPORTED BY */}
             <p style={{ fontSize: "13px", color: "#555" }}>
-              👤 Reported by: <b>{issue.createdBy?.name || "Unknown"}</b>
+              👤 Reported by:{" "}
+              <b>{issue.createdBy?.name || "Unknown"}</b>
             </p>
 
-            {/* 🖼 IMAGE */}
+            {/* USER IMAGE */}
             {issue.image && (
               <img
-                src={`/api/uploads/${issue.image}`}
+                src={`/${issue.image}`}
                 alt="issue"
                 style={styles.image}
-                onClick={() =>
-                  setPreviewImage(`/api/uploads/${issue.image}`)
-                }
+                onClick={() => setPreviewImage(`/${issue.image}`)}
               />
+            )}
+
+            {/* COMPLETED IMAGE */}
+            {issue.completionImage && (
+              <>
+                <p>📸 Completed:</p>
+                <img
+                  src={`/${issue.completionImage}`}
+                  alt="completed"
+                  style={styles.image}
+                />
+              </>
             )}
 
             <StatusBadge status={issue.status} />
 
-            {/* ⚙ ACTIONS */}
             <div style={{ marginTop: "10px" }}>
-              {issue.status === "assigned" && (
+              {(issue.status === "assigned" ||
+                issue.status === "submitted") && (
                 <button
                   style={styles.startBtn}
+                  disabled={actionLoading === issue._id}
                   onClick={() =>
                     updateStatus(issue._id, "in-progress")
                   }
                 >
-                  ▶ Start Work
+                  {actionLoading === issue._id
+                    ? "Starting..."
+                    : "▶ Start Work"}
                 </button>
               )}
 
               {issue.status === "in-progress" && (
-                <button
-                  style={styles.doneBtn}
-                  onClick={() =>
-                    updateStatus(issue._id, "resolved")
-                  }
-                >
-                  ✔ Mark as Completed
-                </button>
+                <div>
+                  <input
+                    type="file"
+                    onChange={(e) =>
+                      setSelectedImage({
+                        ...selectedImage,
+                        [issue._id]: e.target.files[0],
+                      })
+                    }
+                  />
+
+                  <textarea
+                    placeholder="Add remarks..."
+                    style={{ width: "100%", marginTop: "5px" }}
+                    onChange={(e) =>
+                      setRemarks({
+                        ...remarks,
+                        [issue._id]: e.target.value,
+                      })
+                    }
+                  />
+
+                  <button
+                    style={styles.doneBtn}
+                    disabled={actionLoading === issue._id}
+                    onClick={() => submitWork(issue._id)}
+                  >
+                    {actionLoading === issue._id
+                      ? "Submitting..."
+                      : "📤 Submit Work"}
+                  </button>
+                </div>
               )}
 
               {issue.status === "resolved" && (
-                <span style={styles.doneText}>
-                  ✔ Completed
-                </span>
+                <span style={styles.doneText}>✔ Completed</span>
               )}
             </div>
           </div>
         ))}
-      </div>
 
-      {/* 🔍 IMAGE PREVIEW */}
-      {previewImage && (
-        <div
-          style={styles.previewOverlay}
-          onClick={() => setPreviewImage(null)}
-        >
-          <img src={previewImage} style={styles.previewImage} />
-        </div>
-      )}
+        {/* PREVIEW */}
+        {previewImage && (
+          <div
+            style={styles.previewOverlay}
+            onClick={() => setPreviewImage(null)}
+          >
+            <img
+              src={previewImage}
+              style={styles.previewImage}
+              alt="preview"
+            />
+          </div>
+        )}
+      </div>
 
       <Chatbot />
     </div>
   );
 }
 
-// 🔹 STATUS BADGE
 function StatusBadge({ status }) {
   const map = {
     resolved: { bg: "#dcfce7", color: "#16a34a" },
     "in-progress": { bg: "#dbeafe", color: "#2563eb" },
     assigned: { bg: "#fef3c7", color: "#d97706" },
-    pending: { bg: "#fef3c7", color: "#d97706" },
+    submitted: { bg: "#e5e7eb", color: "#374151" },
   };
 
-  const s = map[status] || map.pending;
+  const s = map[status] || map.submitted;
 
   return (
     <div
@@ -167,10 +242,9 @@ function StatusBadge({ status }) {
   );
 }
 
-// 🎨 STYLES
 const styles = {
   card: {
-    background: "rgba(255,255,255,0.75)",
+    background: "rgba(255,255,255,0.85)",
     backdropFilter: "blur(12px)",
     borderRadius: "16px",
     padding: "20px",

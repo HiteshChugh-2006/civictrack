@@ -1,5 +1,3 @@
-// 🔥 FIXED AdminDashboard.js
-
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 import { useEffect, useState } from "react";
@@ -13,23 +11,22 @@ export default function AdminDashboard() {
   const [isOpen, setIsOpen] = useState(true);
   const [loading, setLoading] = useState(true);
   const [previewImage, setPreviewImage] = useState(null);
+  const [actionLoading, setActionLoading] = useState(null);
 
   const token = localStorage.getItem("token");
 
   useEffect(() => {
-    fetchData();
-    const interval = setInterval(fetchData, 5000);
-    return () => clearInterval(interval);
+    fetchData(); // ❌ removed interval → smoother UX
   }, []);
 
   const fetchData = async () => {
     try {
       const issuesRes = await axios.get("/api/issues", {
-        headers: { Authorization: token },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       const workersRes = await axios.get("/api/users/workers", {
-        headers: { Authorization: token },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       setIssues(issuesRes.data);
@@ -41,35 +38,43 @@ export default function AdminDashboard() {
     }
   };
 
+  // ✅ ASSIGN WORKER
   const assignWorker = async (id, workerId) => {
     if (!workerId) return;
 
     try {
+      setActionLoading(id);
+
       await axios.put(
         `/api/issues/assign/${id}`,
         { workerId },
-        { headers: { Authorization: token } }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       fetchData();
     } catch (err) {
-      console.log(err);
       alert("Worker assign failed ❌");
+    } finally {
+      setActionLoading(null);
     }
   };
 
+  // ✅ UPDATE STATUS
   const updateStatus = async (id, status) => {
     try {
+      setActionLoading(id);
+
       await axios.put(
-        `/api/issues/${id}`,   // ✅ FIXED
+        `/api/issues/${id}`,
         { status },
-        { headers: { Authorization: token } }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       fetchData();
     } catch (err) {
-      console.log(err);
       alert("Status update failed ❌");
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -86,15 +91,21 @@ export default function AdminDashboard() {
       <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} role="admin" />
       <Navbar setIsOpen={setIsOpen} />
 
-      <div style={{ ...styles.content, marginLeft: isOpen ? "220px" : "0" }}>
+      <div style={{
+        ...styles.content,
+        marginLeft: isOpen ? "220px" : "0"
+      }}>
+
         <h1>🧑‍💼 Admin Control Panel</h1>
 
+        {/* 📊 STATS */}
         <div style={styles.stats}>
           <StatCard title="Total" value={issues.length} color="#6366f1" />
           <StatCard title="Resolved" value={issues.filter(i => i.status === "resolved").length} color="#22c55e" />
           <StatCard title="Pending" value={issues.filter(i => i.status !== "resolved").length} color="#f59e0b" />
         </div>
 
+        {/* 🔍 FILTER */}
         <div style={styles.topBar}>
           <input
             placeholder="Search issues..."
@@ -112,6 +123,7 @@ export default function AdminDashboard() {
           </select>
         </div>
 
+        {/* 📋 ISSUES */}
         <div style={styles.grid}>
           {filteredIssues.map(issue => (
             <div key={issue._id} style={styles.card}>
@@ -123,23 +135,33 @@ export default function AdminDashboard() {
                 👤 Reported by: <b>{issue.createdBy?.name || "Unknown"}</b>
               </p>
 
+              {/* 🖼 USER IMAGE */}
               {issue.image && (
                 <img
-                  src={`/api/uploads/${issue.image}`}
+                  src={`/${issue.image}`}
+                  alt="issue"
                   style={styles.image}
-                  onClick={() => setPreviewImage(`/api/uploads/${issue.image}`)}
+                  onClick={() => setPreviewImage(`/${issue.image}`)}
                 />
               )}
 
-              {/* ✅ FIXED */}
+              {/* 📸 COMPLETED IMAGE */}
               {issue.completionImage && (
                 <>
-                  <p>📸 Completed Work:</p>
+                  <p style={{ marginTop: "10px" }}>📸 Completed Work:</p>
                   <img
-                    src={`/api/${issue.completionImage}`}
+                    src={`/${issue.completionImage}`}
+                    alt="completed"
                     style={styles.image}
+                    onClick={() => setPreviewImage(`/${issue.completionImage}`)}
                   />
                 </>
+              )}
+
+              {issue.remarks && (
+                <p style={{ fontSize: "13px", marginTop: "5px" }}>
+                  📝 {issue.remarks}
+                </p>
               )}
 
               <div style={styles.meta}>
@@ -147,8 +169,10 @@ export default function AdminDashboard() {
                 <span>👷 {issue.assignedTo?.name || "Not Assigned"}</span>
               </div>
 
+              {/* ⚙ ACTIONS */}
               <div style={styles.actions}>
                 <select
+                  disabled={actionLoading === issue._id}
                   value={issue.status}
                   onChange={(e) => updateStatus(issue._id, e.target.value)}
                   style={styles.select}
@@ -160,12 +184,15 @@ export default function AdminDashboard() {
                 </select>
 
                 <select
+                  disabled={actionLoading === issue._id}
                   onChange={(e) => assignWorker(issue._id, e.target.value)}
                   style={styles.select}
                 >
                   <option value="">Assign Worker</option>
                   {workers.map(w => (
-                    <option key={w._id} value={w._id}>{w.name}</option>
+                    <option key={w._id} value={w._id}>
+                      {w.name}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -173,137 +200,135 @@ export default function AdminDashboard() {
             </div>
           ))}
         </div>
+
+        {/* 🔍 IMAGE PREVIEW */}
+        {previewImage && (
+          <div style={styles.previewOverlay} onClick={() => setPreviewImage(null)}>
+            <img src={previewImage} style={styles.previewImage} />
+          </div>
+        )}
+
       </div>
     </div>
   );
 }
-
-function StatCard({ title, value, color }) {
-  return (
-    <div style={{ ...styles.statCard, borderTop: `4px solid ${color}` }}>
-      {/* ✅ FIXED */}
-      <h4>{title}</h4>
-      <h2>{value}</h2>
-    </div>
-  );
-}
-// 🔹 STATUS BADGE (ADD THIS)
-
-function StatusBadge({ status }) {
-  const map = {
-    resolved: { bg: "#dcfce7", color: "#16a34a" },
-    "in-progress": { bg: "#dbeafe", color: "#2563eb" },
-    assigned: { bg: "#fef3c7", color: "#d97706" },
-    submitted: { bg: "#e5e7eb", color: "#374151" }
-  };
-
-  const s = map[status] || map.submitted;
-
-  return (
-    <span
-      style={{
-        padding: "5px 10px",
-        borderRadius: "20px",
-        background: s.bg,
-        color: s.color,
-        fontSize: "12px"
-      }}
-    >
-      {status}
-    </span>
-  );
-}
-// 🎨 STYLES
-
 const styles = {
-layout: { display: "flex", minHeight: "100vh", background: "#f1f5f9" },
+  layout: {
+    display: "flex",
+    minHeight: "100vh",
+    background: "linear-gradient(135deg, #eef2ff, #f8fafc)"
+  },
 
-content: { marginTop: "60px", padding: "30px", width: "100%" },
+  content: {
+    marginTop: "60px",
+    padding: "30px",
+    width: "100%"
+  },
 
-previewOverlay: {
-position: "fixed",
-top: 0,
-left: 0,
-width: "100%",
-height: "100%",
-background: "rgba(0,0,0,0.8)",
-display: "flex",
-justifyContent: "center",
-alignItems: "center",
-zIndex: 9999
-},
+  /* 📊 STATS */
+  stats: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(200px,1fr))",
+    gap: "20px",
+    marginBottom: "25px"
+  },
 
-previewImage: {
-maxWidth: "90%",
-maxHeight: "90%",
-borderRadius: "10px"
-},
+  statCard: {
+    background: "white",
+    padding: "20px",
+    borderRadius: "14px",
+    boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
+    transition: "0.3s",
+    cursor: "pointer"
+  },
 
-stats: {
-display: "grid",
-gridTemplateColumns: "repeat(auto-fit, minmax(180px,1fr))",
-gap: "15px",
-marginBottom: "20px"
-},
+  /* 🔍 FILTER BAR */
+  topBar: {
+    display: "flex",
+    gap: "15px",
+    marginBottom: "25px",
+    flexWrap: "wrap"
+  },
 
-statCard: {
-background: "white",
-padding: "15px",
-borderRadius: "10px",
-boxShadow: "0 5px 15px rgba(0,0,0,0.08)"
-},
+  search: {
+    padding: "12px",
+    borderRadius: "10px",
+    border: "1px solid #e2e8f0",
+    width: "260px",
+    outline: "none",
+    boxShadow: "0 2px 5px rgba(0,0,0,0.05)"
+  },
 
-topBar: {
-display: "flex",
-gap: "10px",
-marginBottom: "20px"
-},
+  select: {
+    padding: "12px",
+    borderRadius: "10px",
+    border: "1px solid #e2e8f0",
+    cursor: "pointer",
+    background: "white"
+  },
 
-search: {
-padding: "10px",
-borderRadius: "8px",
-border: "1px solid #ccc",
-width: "250px"
-},
+  /* 📋 GRID */
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(320px,1fr))",
+    gap: "25px"
+  },
 
-select: {
-padding: "10px",
-borderRadius: "8px",
-border: "1px solid #ccc"
-},
+  /* 🧾 CARD */
+  card: {
+    background: "rgba(255,255,255,0.85)",
+    backdropFilter: "blur(12px)",
+    borderRadius: "18px",
+    padding: "20px",
+    boxShadow: "0 15px 35px rgba(0,0,0,0.12)",
+    transition: "0.3s",
+    border: "1px solid rgba(255,255,255,0.3)"
+  },
 
-grid: {
-display: "grid",
-gridTemplateColumns: "repeat(auto-fit, minmax(300px,1fr))",
-gap: "20px"
-},
+  /* 🖼 IMAGE */
+  image: {
+    width: "100%",
+    height: "160px",
+    objectFit: "cover",
+    borderRadius: "12px",
+    marginTop: "10px",
+    cursor: "pointer",
+    transition: "0.3s"
+  },
 
-card: {
-background: "rgba(255,255,255,0.75)",
-backdropFilter: "blur(12px)",
-borderRadius: "16px",
-padding: "20px",
-boxShadow: "0 10px 25px rgba(0,0,0,0.12)"
-},
+  /* META */
+  meta: {
+    display: "flex",
+    justifyContent: "space-between",
+    marginTop: "12px",
+    fontSize: "14px"
+  },
 
-image: {
-width: "100%",
-height: "150px",
-objectFit: "cover",
-borderRadius: "10px",
-marginTop: "10px",
-cursor: "pointer"
-},
+  /* ACTIONS */
+  actions: {
+    display: "flex",
+    gap: "10px",
+    marginTop: "15px"
+  },
 
-meta: {
-display: "flex",
-justifyContent: "space-between",
-marginTop: "10px"
-},
+  /* PREVIEW */
+  previewOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    background: "rgba(0,0,0,0.85)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 9999
+  },
 
-actions: {
-display: "flex",
-gap: "10px",
-marginTop: "15px"
-}
-};      
+  previewImage: {
+    maxWidth: "90%",
+    maxHeight: "90%",
+    borderRadius: "12px",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.5)"
+  }
+};
