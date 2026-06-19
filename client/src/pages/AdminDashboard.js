@@ -1,5 +1,6 @@
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
+import Chatbot from "../components/Chatbot";
 import { useEffect, useState } from "react";
 import API from "../api"; // ✅ FIXED
 
@@ -73,22 +74,20 @@ export default function AdminDashboard() {
       (i.title || "").toLowerCase().includes(search.toLowerCase())
     );
 
-  if (loading) return <h2 style={{ padding: 100 }}>Loading...</h2>;
+  if (loading) return <h2 style={{ padding: 100, color: "#ffffff", background: "#0f172a", minHeight: "100vh" }}>Loading...</h2>;
 
   return (
-    <div style={{ display: "flex", background: "#0f172a", minHeight: "100vh", color: "#f8fafc" }}>
+    <div style={styles.wrapper}>
       <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} />
       <Navbar setIsOpen={setIsOpen} />
 
       <div
         style={{
-          marginTop: "60px",
-          marginLeft: isOpen ? "220px" : "0",
-          padding: "25px",
-          width: "100%",
+          ...styles.main,
+          marginLeft: isOpen ? "220px" : "20px",
         }}
       >
-        <h1 style={{ color: "#ffffff" }}>🧑‍💼 Admin Dashboard</h1>
+        <h1 style={styles.heading}>🧑‍💼 Admin Dashboard</h1>
 
         {/* 🔍 FILTER */}
         <div style={{ display: "flex", gap: "15px", marginBottom: "25px", flexWrap: "wrap", alignItems: "center" }}>
@@ -103,137 +102,232 @@ export default function AdminDashboard() {
           <select
             value={filter}
             className="glass-input"
-            style={{ maxWidth: "200px", margin: 0 }}
+            style={{ maxWidth: "200px", margin: 0, cursor: "pointer" }}
             onChange={(e) => setFilter(e.target.value)}
           >
-            <option value="all">All Statuses</option>
-            <option value="submitted">Submitted</option>
-            <option value="assigned">Assigned</option>
-            <option value="in-progress">In Progress</option>
-            <option value="resolved">Resolved</option>
+            <option style={styles.selectOption} value="all">All Statuses</option>
+            <option style={styles.selectOption} value="submitted">Submitted</option>
+            <option style={styles.selectOption} value="assigned">Assigned</option>
+            <option style={styles.selectOption} value="in-progress">In Progress</option>
+            <option style={styles.selectOption} value="resolved">Resolved</option>
           </select>
         </div>
 
         {/* 📋 ISSUES */}
-        {filteredIssues.map((issue) => (
-          <div key={issue._id} style={card}>
-            <h3>{issue.title}</h3>
-            <p>{issue.description}</p>
+        <div style={styles.issuesList}>
+          {filteredIssues.map((issue) => (
+            <div key={issue._id} style={styles.card}>
+              <div>
+                <h3 style={styles.cardTitle}>{issue.title}</h3>
+                <p style={styles.desc}>{issue.description}</p>
 
-            <p>👤 {issue.createdBy?.name || "Unknown"}</p>
+                <p style={styles.meta}>👤 Reported by: <b>{issue.createdBy?.name || "Unknown"}</b></p>
 
-            {/* 🖼 ISSUE IMAGE */}
-            {issue.image && (
-              <img
-                src={`${BASE_URL}/uploads/${issue.image}`}
-                style={img}
-                alt="Issue"
-                onClick={() =>
-                  setPreviewImage(`${BASE_URL}/uploads/${issue.image}`)
-                }
-              />
-            )}
+                {/* 🖼 ISSUE IMAGE */}
+                {issue.image && (
+                  <img
+                    src={`${BASE_URL}/uploads/${issue.image}`}
+                    style={styles.img}
+                    alt="Issue"
+                    onClick={() =>
+                      setPreviewImage(`${BASE_URL}/uploads/${issue.image}`)
+                    }
+                  />
+                )}
 
-            {/* 📸 COMPLETION IMAGE */}
-            {issue.completionImage && (
-              <>
-                <p>📸 Completed:</p>
-                <img
-                  src={`${BASE_URL}/uploads/${issue.completionImage}`}
-                  style={img}
-                  alt="Completion"
-                  onClick={() =>
-                    setPreviewImage(
-                      `${BASE_URL}/uploads/${issue.completionImage}`
-                    )
+                {/* 📸 COMPLETION IMAGE */}
+                {issue.completionImage && (
+                  <div style={{ marginTop: "10px" }}>
+                    <p style={{ margin: "5px 0", color: "#4ade80", fontSize: "13px", fontWeight: "600" }}>📸 Completed:</p>
+                    <img
+                      src={`${BASE_URL}/uploads/${issue.completionImage}`}
+                      style={styles.img}
+                      alt="Completion"
+                      onClick={() =>
+                        setPreviewImage(
+                          `${BASE_URL}/uploads/${issue.completionImage}`
+                        )
+                      }
+                    />
+                  </div>
+                )}
+
+                {/* 📝 REMARKS */}
+                {issue.remarks && (
+                  <p style={{ ...styles.meta, marginTop: "8px" }}>
+                    <b>📝 Remarks:</b> {issue.remarks}
+                  </p>
+                )}
+
+                <p style={{ ...styles.meta, marginTop: "8px" }}>
+                  Status: <b style={{ textTransform: "capitalize", color: "#ffffff" }}>{issue.status}</b>
+                </p>
+              </div>
+
+              {/* ACTIONS */}
+              <div style={{ marginTop: "15px", borderTop: "1px solid rgba(255, 255, 255, 0.08)", paddingTop: "12px", display: "flex", gap: "10px" }}>
+                <select
+                  value={issue.status}
+                  style={styles.select}
+                  disabled={actionLoading === issue._id}
+                  onChange={(e) =>
+                    updateStatus(issue._id, e.target.value)
                   }
-                />
-              </>
-            )}
+                >
+                  <option style={styles.selectOption} value="submitted">Submitted</option>
+                  <option style={styles.selectOption} value="assigned">Assigned</option>
+                  <option style={styles.selectOption} value="in-progress">In Progress</option>
+                  <option style={styles.selectOption} value="resolved">Resolved</option>
+                </select>
 
-            {/* 📝 REMARKS */}
-            {issue.remarks && <p>📝 {issue.remarks}</p>}
-
-            <p>Status: <b>{issue.status}</b></p>
-
-            {/* ACTIONS */}
-            <div style={{ marginTop: "10px", display: "flex", gap: "10px" }}>
-              <select
-                value={issue.status}
-                disabled={actionLoading === issue._id}
-                onChange={(e) =>
-                  updateStatus(issue._id, e.target.value)
-                }
-              >
-                <option value="submitted">Submitted</option>
-                <option value="assigned">Assigned</option>
-                <option value="in-progress">In Progress</option>
-                <option value="resolved">Resolved</option>
-              </select>
-
-              <select
-                disabled={actionLoading === issue._id}
-                onChange={(e) =>
-                  assignWorker(issue._id, e.target.value)
-                }
-              >
-                <option value="">
-                  {issue.assignedTo
-                    ? `Assigned: ${issue.assignedTo.name}`
-                    : "Assign Worker"}
-                </option>
-
-                {workers.map((w) => (
-                  <option key={w._id} value={w._id}>
-                    {w.name}
+                <select
+                  style={styles.select}
+                  disabled={actionLoading === issue._id}
+                  onChange={(e) =>
+                    assignWorker(issue._id, e.target.value)
+                  }
+                >
+                  <option style={styles.selectOption} value="">
+                    {issue.assignedTo
+                      ? `Assigned: ${issue.assignedTo.name}`
+                      : "Assign Worker"}
                   </option>
-                ))}
-              </select>
+
+                  {workers.map((w) => (
+                    <option key={w._id} style={styles.selectOption} value={w._id}>
+                      {w.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
 
         {/* 🔍 IMAGE PREVIEW */}
         {previewImage && (
-          <div style={overlay} onClick={() => setPreviewImage(null)}>
-            <img src={previewImage} style={{ maxWidth: "90%" }} alt="Preview" />
+          <div style={styles.overlay} onClick={() => setPreviewImage(null)}>
+            <img src={previewImage} style={styles.previewImage} alt="Preview" />
           </div>
         )}
       </div>
+
+      <Chatbot />
     </div>
   );
 }
 
 /* 🎨 STYLES */
-const card = {
-  background: "rgba(30, 41, 59, 0.45)",
-  backdropFilter: "blur(12px)",
-  border: "1px solid rgba(255, 255, 255, 0.08)",
-  padding: "24px",
-  marginBottom: "20px",
-  borderRadius: "16px",
-  boxShadow: "0 8px 32px 0 rgba(0, 0, 0, 0.3)",
-  color: "#f8fafc"
-};
+const styles = {
+  wrapper: {
+    display: "flex",
+    background: "#0f172a",
+    minHeight: "100vh",
+    color: "#f8fafc"
+  },
 
-const img = {
-  width: "100%",
-  height: "150px",
-  objectFit: "cover",
-  marginTop: "10px",
-  borderRadius: "10px",
-  cursor: "pointer",
-};
+  main: {
+    padding: "30px",
+    width: "100%",
+    marginTop: "60px",
+    transition: "0.3s",
+    boxSizing: "border-box"
+  },
 
-const overlay = {
-  position: "fixed",
-  top: 0,
-  left: 0,
-  width: "100%",
-  height: "100%",
-  background: "rgba(0,0,0,0.8)",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  zIndex: 9999,
+  heading: {
+    color: "#ffffff",
+    fontSize: "28px",
+    fontWeight: "700",
+    marginBottom: "20px"
+  },
+
+  issuesList: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+    gap: "20px",
+    marginTop: "20px",
+    maxWidth: "1200px"
+  },
+
+  card: {
+    background: "rgba(30, 41, 59, 0.45)",
+    backdropFilter: "blur(12px)",
+    border: "1px solid rgba(255, 255, 255, 0.08)",
+    padding: "24px",
+    borderRadius: "18px",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
+    color: "#f8fafc",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between"
+  },
+
+  cardTitle: {
+    margin: 0,
+    fontSize: "20px",
+    fontWeight: "600",
+    color: "#ffffff"
+  },
+
+  desc: {
+    color: "#cbd5e1",
+    fontSize: "14px",
+    lineHeight: "1.5",
+    margin: "10px 0"
+  },
+
+  meta: {
+    fontSize: "13px",
+    color: "#94a3b8",
+    margin: "4px 0"
+  },
+
+  img: {
+    width: "100%",
+    height: "150px",
+    objectFit: "cover",
+    marginTop: "10px",
+    borderRadius: "12px",
+    border: "1px solid rgba(255, 255, 255, 0.15)",
+    cursor: "pointer"
+  },
+
+  select: {
+    padding: "8px 12px",
+    borderRadius: "8px",
+    border: "1px solid rgba(255, 255, 255, 0.15)",
+    background: "rgba(15, 23, 42, 0.6)",
+    color: "#ffffff",
+    outline: "none",
+    cursor: "pointer",
+    fontSize: "13px",
+    flex: 1,
+    boxSizing: "border-box"
+  },
+
+  selectOption: {
+    background: "#1e293b",
+    color: "#ffffff"
+  },
+
+  overlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    background: "rgba(0, 0, 0, 0.85)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 9999
+  },
+
+  previewImage: {
+    maxWidth: "90%",
+    maxHeight: "90%",
+    borderRadius: "12px",
+    boxShadow: "0 10px 40px rgba(0,0,0,0.5)",
+    border: "1px solid rgba(255, 255, 255, 0.15)"
+  }
 };
