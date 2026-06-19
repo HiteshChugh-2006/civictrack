@@ -40,5 +40,25 @@ app.listen(process.env.PORT, () =>
 app.use(express.static(path.join(__dirname, "../client/build")));
 
 app.get("/*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../client/build/index.html"));
+  const filePath = path.join(__dirname, "../client/build/index.html");
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      console.error("Error sending index.html:", err.message);
+      res.status(404).json({
+        success: false,
+        status: 404,
+        message: "CivicTrack Frontend Build Not Found",
+        error: err.message
+      });
+    }
+  });
+});
+
+// Custom 404 fallback for unhandled requests
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    status: 404,
+    message: `CivicTrack Custom Route Not Found: ${req.originalUrl}`
+  });
 });
