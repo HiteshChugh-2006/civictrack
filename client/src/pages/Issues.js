@@ -8,26 +8,26 @@ export default function Issues() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   useEffect(() => {
+    const fetchIssues = async () => {
+      try {
+        const res = await API.get("/issues"); // ✅ FIXED
+
+        const myIssues = res.data.filter(
+          i => String(i.createdBy?._id) === String(user._id)
+        );
+
+        setIssues(myIssues);
+
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
     fetchIssues();
 
     const interval = setInterval(fetchIssues, 5000); // ✅ AUTO REFRESH
     return () => clearInterval(interval);
-  }, []);
-
-  const fetchIssues = async () => {
-    try {
-      const res = await API.get("/issues"); // ✅ FIXED
-
-      const myIssues = res.data.filter(
-        i => String(i.createdBy?._id) === String(user._id)
-      );
-
-      setIssues(myIssues);
-
-    } catch (err) {
-      console.log(err);
-    }
-  };
+  }, [user._id]);
 
   return (
     <div style={{ padding: "20px" }}>

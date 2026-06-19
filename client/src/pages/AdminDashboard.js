@@ -123,6 +123,7 @@ export default function AdminDashboard() {
               <img
                 src={`${BASE_URL}/uploads/${issue.image}`}
                 style={img}
+                alt="Issue"
                 onClick={() =>
                   setPreviewImage(`${BASE_URL}/uploads/${issue.image}`)
                 }
@@ -136,6 +137,7 @@ export default function AdminDashboard() {
                 <img
                   src={`${BASE_URL}/uploads/${issue.completionImage}`}
                   style={img}
+                  alt="Completion"
                   onClick={() =>
                     setPreviewImage(
                       `${BASE_URL}/uploads/${issue.completionImage}`
@@ -190,7 +192,7 @@ export default function AdminDashboard() {
         {/* 🔍 IMAGE PREVIEW */}
         {previewImage && (
           <div style={overlay} onClick={() => setPreviewImage(null)}>
-            <img src={previewImage} style={{ maxWidth: "90%" }} />
+            <img src={previewImage} style={{ maxWidth: "90%" }} alt="Preview" />
           </div>
         )}
       </div>
