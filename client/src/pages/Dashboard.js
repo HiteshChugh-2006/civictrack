@@ -25,7 +25,7 @@ export default function Dashboard() {
 
   const fetchIssues = async () => {
     try {
-      const res = await api.get("/issues");
+      const res = await api.get("/issues/all");
       setIssues(res.data || []);
     } catch (err) {
       console.log(err);

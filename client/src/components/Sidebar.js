@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 export default function Sidebar({ isOpen, setIsOpen }) {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const role = user?.role || "user";
+  const rawRole = user?.role || "user";
+  const role = rawRole === "citizen" ? "user" : rawRole;
 
   const menus = {
     admin: [

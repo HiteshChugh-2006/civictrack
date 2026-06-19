@@ -34,7 +34,7 @@ export default function MapView() {
 
   const fetchIssues = async () => {
     try {
-      const res = await API.get("/issues"); // ✅ FIXED
+      const res = await API.get("/issues/all"); // ✅ FIXED
       setIssues(res.data);
     } catch (err) {
       console.error(err);

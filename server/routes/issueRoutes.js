@@ -172,6 +172,58 @@ router.put("/complete/:id", auth, upload.single("image"), async (req, res) => {
 
 
 // =============================
+// 🌎 GET ALL ISSUES (PUBLIC CITY FEED)
+// =============================
+router.get("/all", auth, async (req, res) => {
+  try {
+    const issues = await Issue.find()
+      .populate("createdBy", "name email")
+      .populate("assignedTo", "name email")
+      .sort({ createdAt: -1 });
+    res.json(issues);
+  } catch (err) {
+    res.status(500).json("Error fetching all issues");
+  }
+});
+
+// =============================
+// 🗳️ VOTE ON ISSUE (TOGGLE)
+// =============================
+router.put("/vote/:id", auth, async (req, res) => {
+  try {
+    const issue = await Issue.findById(req.params.id);
+    if (!issue) {
+      return res.status(404).json("Issue not found");
+    }
+
+    if (!Array.isArray(issue.votes)) {
+      issue.votes = [];
+    }
+
+    const userIdStr = String(req.user.id);
+    const voterIndex = issue.votes.findIndex(v => String(v) === userIdStr);
+
+    if (voterIndex === -1) {
+      issue.votes.push(req.user.id);
+    } else {
+      issue.votes.splice(voterIndex, 1);
+    }
+
+    await issue.save();
+
+    const updated = await Issue.findById(req.params.id)
+      .populate("createdBy", "name email")
+      .populate("assignedTo", "name email");
+
+    res.json(updated);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json("Error processing vote");
+  }
+});
+
+// =============================
 // ✅ UPDATE STATUS
 // =============================
 router.put("/:id", auth, async (req, res) => {

@@ -18,10 +18,12 @@ remarks: String,
     type: mongoose.Schema.Types.ObjectId,
     ref: "User"
   },
-  votes: {
-    type: Number,
-    default: 0
-  },
+  votes: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User"
+    }
+  ],
   assignedTo: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User"   // 🔥 FINAL FIX
