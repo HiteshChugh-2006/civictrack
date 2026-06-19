@@ -12,9 +12,18 @@ import About from "./pages/About";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
-function App() {
-  const user = JSON.parse(localStorage.getItem("user"));
+function DynamicDashboardRedirect() {
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  if (user.role === "admin") {
+    return <Navigate to="/admin" replace />;
+  } else if (user.role === "worker") {
+    return <Navigate to="/worker" replace />;
+  } else {
+    return <Dashboard />;
+  }
+}
 
+function App() {
   return (
     <Router>
       <Routes>
@@ -26,13 +35,7 @@ function App() {
         {/* USER */}
         <Route path="/dashboard" element={
           <ProtectedRoute>
-            {user?.role === "admin" ? (
-              <Navigate to="/admin" />
-            ) : user?.role === "worker" ? (
-              <Navigate to="/worker" />
-            ) : (
-              <Dashboard />
-            )}
+            <DynamicDashboardRedirect />
           </ProtectedRoute>
         } />
 

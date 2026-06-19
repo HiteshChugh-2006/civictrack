@@ -33,46 +33,51 @@ export default function Register() {
 
   return (
     <div style={styles.container}>
-      <div style={styles.card}>
-        <h2>📝 Sign Up</h2>
+      <div className="glass-card">
+        <div style={styles.iconContainer}>📝</div>
+        <h2 style={styles.title}>Create Account</h2>
+        <p style={styles.subtitle}>Join CivicTrack to report & track issues.</p>
 
         <form onSubmit={handleSubmit}>
           <input
-            placeholder="Name"
+            placeholder="Full Name"
             value={data.name}
-            style={styles.input}
+            className="glass-input"
             onChange={(e) =>
               setData({ ...data, name: e.target.value })
             }
+            required
           />
 
           <input
             type="email"
-            placeholder="Email"
+            placeholder="Email Address"
             value={data.email}
-            style={styles.input}
+            className="glass-input"
             onChange={(e) =>
               setData({ ...data, email: e.target.value })
             }
+            required
           />
 
           <input
             type="password"
             placeholder="Password"
             value={data.password}
-            style={styles.input}
+            className="glass-input"
             onChange={(e) =>
               setData({ ...data, password: e.target.value })
             }
+            required
           />
 
-          <button type="submit" style={styles.button}>
+          <button type="submit" className="premium-btn">
             Register
           </button>
         </form>
 
-        <p onClick={() => navigate("/")} style={styles.link}>
-          Already have account? Login
+        <p onClick={() => navigate("/")} className="premium-link">
+          Already have an account? Login
         </p>
       </div>
     </div>
@@ -84,28 +89,25 @@ const styles = {
     height: "100vh",
     display: "flex",
     justifyContent: "center",
-    alignItems: "center"
+    alignItems: "center",
+    background: "radial-gradient(circle at 50% 50%, #0f172a 0%, #020617 100%)",
+    padding: "20px",
+    boxSizing: "border-box"
   },
-  card: {
-    background: "white",
-    padding: "25px",
-    borderRadius: "10px",
-    width: "300px",
-    textAlign: "center"
+  iconContainer: {
+    fontSize: "36px",
+    marginBottom: "12px",
+    display: "inline-block"
   },
-  input: {
-    width: "100%",
-    margin: "10px 0",
-    padding: "10px"
+  title: {
+    color: "#ffffff",
+    fontWeight: "700",
+    fontSize: "24px",
+    margin: "0 0 4px 0"
   },
-  button: {
-    width: "100%",
-    padding: "10px",
-    background: "green",
-    color: "white"
-  },
-  link: {
-    color: "blue",
-    cursor: "pointer"
+  subtitle: {
+    color: "#64748b",
+    fontSize: "14px",
+    margin: "0 0 24px 0"
   }
 };

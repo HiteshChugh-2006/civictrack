@@ -34,7 +34,7 @@ export default function MapView() {
 
   const fetchIssues = async () => {
     try {
-      const res = await API.get("/api/issues"); // ✅ FIXED
+      const res = await API.get("/issues"); // ✅ FIXED
       setIssues(res.data);
     } catch (err) {
       console.error(err);
@@ -83,7 +83,7 @@ export default function MapView() {
 
           {i.image && (
             <img
-              src={`/uploads/${i.image}`}
+              src={`${BASE_URL}/uploads/${i.image}`}
               style={styles.image}
               alt=""
             />

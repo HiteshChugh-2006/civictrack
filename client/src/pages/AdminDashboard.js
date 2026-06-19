@@ -21,8 +21,8 @@ export default function AdminDashboard() {
   const fetchData = async () => {
     try {
       const [issuesRes, workersRes] = await Promise.all([
-        API.get("/api/issues"),
-        API.get("/api/users/workers"),
+        API.get("/issues"),
+        API.get("/users/workers"),
       ]);
 
       setIssues(issuesRes.data || []);
@@ -42,7 +42,7 @@ export default function AdminDashboard() {
     try {
       setActionLoading(id);
 
-      await API.put(`/api/issues/assign/${id}`, { workerId });
+      await API.put(`/issues/assign/${id}`, { workerId });
 
       fetchData();
     } catch {
@@ -57,7 +57,7 @@ export default function AdminDashboard() {
     try {
       setActionLoading(id);
 
-      await API.put(`/api/issues/${id}`, { status });
+      await API.put(`/issues/${id}`, { status });
 
       fetchData();
     } catch {
@@ -124,7 +124,7 @@ export default function AdminDashboard() {
                 src={`${BASE_URL}/uploads/${issue.image}`}
                 style={img}
                 onClick={() =>
-                  setPreviewImage(`/uploads/${issue.image}`)
+                  setPreviewImage(`${BASE_URL}/uploads/${issue.image}`)
                 }
               />
             )}
@@ -138,7 +138,7 @@ export default function AdminDashboard() {
                   style={img}
                   onClick={() =>
                     setPreviewImage(
-                      `/uploads/${issue.completionImage}`
+                      `${BASE_URL}/uploads/${issue.completionImage}`
                     )
                   }
                 />

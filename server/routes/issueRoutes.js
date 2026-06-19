@@ -142,6 +142,16 @@ router.put("/complete/:id", auth, upload.single("image"), async (req, res) => {
   try {
     const { remarks } = req.body;
 
+    const issue = await Issue.findById(req.params.id);
+    if (!issue) {
+      return res.status(404).json("Issue not found");
+    }
+
+    // Only the assigned worker or admin can resolve/complete the issue
+    if (req.user.role !== "admin" && String(issue.assignedTo) !== String(req.user.id)) {
+      return res.status(403).json("Unauthorized: You are not assigned to this issue");
+    }
+
     const updated = await Issue.findByIdAndUpdate(
       req.params.id,
       {

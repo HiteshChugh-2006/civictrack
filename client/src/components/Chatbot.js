@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import api from "../api";
 
 export default function Chatbot() {
   const [open, setOpen] = useState(false);
@@ -27,15 +28,8 @@ export default function Chatbot() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/ai/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ message: userInput })
-      });
-
-      const data = await res.json();
+      const res = await api.post("/ai/chat", { message: userInput });
+      const data = res.data;
 
       setMessages(prev => [
         ...prev,

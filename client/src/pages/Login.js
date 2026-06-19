@@ -39,44 +39,45 @@ export default function Login() {
 
   return (
     <div style={styles.container}>
-      <div style={styles.card}>
-        <h2 style={styles.title}>🔐 CivicTrack Login</h2>
+      <div className="glass-card">
+        <div style={styles.iconContainer}>🚀</div>
+        <h2 style={styles.title}>CivicTrack Login</h2>
+        <p style={styles.subtitle}>Welcome back! Access your dashboard.</p>
 
         <form onSubmit={handleSubmit}>
           <input
             type="email"
-            placeholder="Email"
+            placeholder="Email Address"
             value={data.email}
-            style={styles.input}
+            className="glass-input"
             onChange={(e) =>
               setData({ ...data, email: e.target.value })
             }
+            required
           />
 
           <input
             type="password"
             placeholder="Password"
             value={data.password}
-            style={styles.input}
+            className="glass-input"
             onChange={(e) =>
               setData({ ...data, password: e.target.value })
             }
+            required
           />
 
           <button
             type="submit"
-            style={{
-              ...styles.button,
-              opacity: loading ? 0.7 : 1
-            }}
+            className="premium-btn"
             disabled={loading}
           >
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
-        <p style={styles.link} onClick={() => navigate("/register")}>
-          New user? Sign up
+        <p className="premium-link" onClick={() => navigate("/register")}>
+          New user? Create an account
         </p>
 
         <p style={styles.forgot}>
@@ -86,58 +87,36 @@ export default function Login() {
     </div>
   );
 }
+
 const styles = {
   container: {
     height: "100vh",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    background: "linear-gradient(135deg, #eef2ff, #f8fafc)"
+    background: "radial-gradient(circle at 50% 50%, #0f172a 0%, #020617 100%)",
+    padding: "20px",
+    boxSizing: "border-box"
   },
-
-  card: {
-    background: "rgba(255,255,255,0.8)",
-    backdropFilter: "blur(10px)",
-    padding: "30px",
-    borderRadius: "15px",
-    boxShadow: "0 10px 25px rgba(0,0,0,0.15)",
-    width: "320px",
-    textAlign: "center"
+  iconContainer: {
+    fontSize: "36px",
+    marginBottom: "12px",
+    display: "inline-block"
   },
-
   title: {
-    marginBottom: "20px"
+    color: "#ffffff",
+    fontWeight: "700",
+    fontSize: "24px",
+    margin: "0 0 4px 0"
   },
-
-  input: {
-    width: "100%",
-    padding: "12px",
-    margin: "10px 0",
-    borderRadius: "8px",
-    border: "1px solid #ccc",
-    outline: "none"
+  subtitle: {
+    color: "#64748b",
+    fontSize: "14px",
+    margin: "0 0 24px 0"
   },
-
-  button: {
-    width: "100%",
-    padding: "12px",
-    background: "#e53935",
-    color: "white",
-    border: "none",
-    borderRadius: "8px",
-    marginTop: "10px",
-    cursor: "pointer"
-  },
-
-  link: {
-    color: "#2563eb",
-    cursor: "pointer",
-    marginTop: "10px"
-  },
-
   forgot: {
-    color: "#ef4444",
+    color: "#475569",
     fontSize: "12px",
-    marginTop: "5px"
+    marginTop: "16px"
   }
 };

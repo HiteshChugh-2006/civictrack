@@ -13,7 +13,7 @@ router.post("/", async (req, res) => {
     const { message } = req.body;
 
     const completion = await openai.chat.completions.create({
-      model: "mistralai/mistral-7b-instruct", // ✅ free model
+      model: "google/gemma-2-9b-it:free", // ✅ free model
       messages: [
         {
           role: "system",
