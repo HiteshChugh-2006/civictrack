@@ -3,6 +3,9 @@ import api from "../api"; // ✅ FIXED (lowercase)
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import Sidebar from "../components/Sidebar";
+import Navbar from "../components/Navbar";
+import Chatbot from "../components/Chatbot";
 
 // ✅ FIX MARKER ICON
 delete L.Icon.Default.prototype._getIconUrl;
@@ -13,6 +16,7 @@ L.Icon.Default.mergeOptions({
 });
 
 export default function CreateIssue() {
+  const [isOpen, setIsOpen] = useState(true);
   const [data, setData] = useState({
     title: "",
     description: "",
@@ -107,129 +111,149 @@ export default function CreateIssue() {
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
+    <div style={styles.wrapper}>
+      <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} />
+      <Navbar setIsOpen={setIsOpen} />
 
-        <h2 style={styles.heading}>📍 Report Issue</h2>
+      <div style={{
+        ...styles.main,
+        marginLeft: isOpen ? "220px" : "20px"
+      }}>
+        <div style={styles.card}>
 
-        {success && (
-          <div style={styles.successBox}>
-            ✅ Issue submitted successfully!
-          </div>
-        )}
+          <h2 style={styles.heading}>📍 Report Issue</h2>
 
-        <form onSubmit={handleSubmit}>
+          {success && (
+            <div style={styles.successBox}>
+              ✅ Issue submitted successfully!
+            </div>
+          )}
 
-          {/* TITLE */}
-          <div style={styles.inputGroup}>
-            <input
-              value={data.title}
-              placeholder=" "
-              style={styles.input}
-              onChange={(e) =>
-                setData({ ...data, title: e.target.value })
-              }
-            />
-            <label style={styles.label}>Title</label>
-          </div>
+          <form onSubmit={handleSubmit}>
 
-          {/* DESCRIPTION */}
-          <div style={styles.inputGroup}>
-            <textarea
-              value={data.description}
-              placeholder=" "
-              style={styles.textarea}
-              onChange={(e) =>
-                setData({ ...data, description: e.target.value })
-              }
-            />
-            <label style={styles.label}>Description</label>
-          </div>
+            {/* TITLE */}
+            <div style={styles.inputGroup}>
+              <input
+                value={data.title}
+                placeholder=" "
+                style={styles.input}
+                onChange={(e) =>
+                  setData({ ...data, title: e.target.value })
+                }
+              />
+              <label style={styles.label}>Title</label>
+            </div>
 
-          {/* LOCATION */}
-          <button type="button" style={styles.locationBtn} onClick={getLocation}>
-            📍 Use My Location
-          </button>
+            {/* DESCRIPTION */}
+            <div style={styles.inputGroup}>
+              <textarea
+                value={data.description}
+                placeholder=" "
+                style={styles.textarea}
+                onChange={(e) =>
+                  setData({ ...data, description: e.target.value })
+                }
+              />
+              <label style={styles.label}>Description</label>
+            </div>
 
-          <div style={styles.map}>
-            <MapContainer
-              center={[30.7333, 76.7794]}
-              zoom={13}
-              style={{ height: "100%", borderRadius: "10px" }}
+            {/* LOCATION */}
+            <button type="button" style={styles.locationBtn} onClick={getLocation}>
+              📍 Use My Location
+            </button>
+
+            <div style={styles.map}>
+              <MapContainer
+                center={[30.7333, 76.7794]}
+                zoom={13}
+                style={{ height: "100%", borderRadius: "10px" }}
+              >
+                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                <LocationPicker />
+              </MapContainer>
+            </div>
+
+            {data.lat && (
+              <p style={styles.successText}>
+                📍 {data.lat.toFixed(4)}, {data.lng.toFixed(4)}
+              </p>
+            )}
+
+            {/* IMAGE */}
+            <div
+              style={{
+                ...styles.drop,
+                borderColor: drag ? "#3b82f6" : "rgba(255, 255, 255, 0.2)"
+              }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDrag(true);
+              }}
+              onDragLeave={() => setDrag(false)}
+              onDrop={handleDrop}
             >
-              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-              <LocationPicker />
-            </MapContainer>
-          </div>
+              <p>📂 Drag & Drop Image</p>
+              <input
+                type="file"
+                onChange={(e) => setImage(e.target.files[0])}
+              />
+            </div>
 
-          {data.lat && (
-            <p style={styles.successText}>
-              📍 {data.lat.toFixed(4)}, {data.lng.toFixed(4)}
-            </p>
-          )}
+            {image && (
+              <img
+                src={URL.createObjectURL(image)}
+                style={styles.preview}
+                alt="preview"
+              />
+            )}
 
-          {/* IMAGE */}
-          <div
-            style={{
-              ...styles.drop,
-              borderColor: drag ? "#3b82f6" : "#ccc"
-            }}
-            onDragOver={(e) => {
-              e.preventDefault();
-              setDrag(true);
-            }}
-            onDragLeave={() => setDrag(false)}
-            onDrop={handleDrop}
-          >
-            <p>📂 Drag & Drop Image</p>
-            <input
-              type="file"
-              onChange={(e) => setImage(e.target.files[0])}
-            />
-          </div>
+            <button
+              disabled={loading}
+              style={styles.submit}
+            >
+              {loading ? "Submitting..." : "Submit Issue"}
+            </button>
 
-          {image && (
-            <img
-              src={URL.createObjectURL(image)}
-              style={styles.preview}
-              alt="preview"
-            />
-          )}
-
-          <button
-            disabled={loading}
-            style={styles.submit}
-          >
-            {loading ? "Submitting..." : "Submit Issue"}
-          </button>
-
-        </form>
+          </form>
+        </div>
       </div>
+      <Chatbot />
     </div>
   );
 }
 
 const styles = {
-  container: {
+  wrapper: {
     display: "flex",
-    justifyContent: "center",
-    padding: "40px",
-    background: "#f1f5f9",
-    minHeight: "100vh"
+    background: "#0f172a",
+    minHeight: "100vh",
+    color: "#f8fafc"
+  },
+
+  main: {
+    padding: "30px",
+    width: "100%",
+    marginTop: "60px",
+    transition: "0.3s"
   },
 
   card: {
-    background: "#ffffff",
+    background: "rgba(30, 41, 59, 0.45)",
+    backdropFilter: "blur(12px)",
+    border: "1px solid rgba(255, 255, 255, 0.08)",
     padding: "30px",
-    borderRadius: "14px",
+    borderRadius: "18px",
     width: "100%",
     maxWidth: "500px",
-    boxShadow: "0 10px 30px rgba(0,0,0,0.1)"
+    boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)",
+    margin: "0 auto",
+    color: "#f8fafc"
   },
 
   heading: {
     marginBottom: "20px",
-    fontWeight: "600"
+    fontWeight: "600",
+    color: "#ffffff"
   },
 
   inputGroup: {
@@ -240,28 +264,34 @@ const styles = {
   input: {
     width: "100%",
     padding: "12px",
-    border: "1px solid #ccc",
+    border: "1px solid rgba(255, 255, 255, 0.15)",
     borderRadius: "8px",
-    outline: "none"
+    background: "rgba(15, 23, 42, 0.6)",
+    color: "#ffffff",
+    outline: "none",
+    boxSizing: "border-box"
   },
 
   textarea: {
     width: "100%",
     padding: "12px",
-    border: "1px solid #ccc",
+    border: "1px solid rgba(255, 255, 255, 0.15)",
     borderRadius: "8px",
     minHeight: "80px",
-    outline: "none"
+    background: "rgba(15, 23, 42, 0.6)",
+    color: "#ffffff",
+    outline: "none",
+    boxSizing: "border-box"
   },
 
   label: {
     position: "absolute",
     top: "-8px",
     left: "10px",
-    background: "#fff",
+    background: "#1e293b",
     padding: "0 5px",
     fontSize: "12px",
-    color: "#555"
+    color: "#94a3b8"
   },
 
   locationBtn: {
@@ -271,7 +301,9 @@ const styles = {
     color: "#fff",
     border: "none",
     borderRadius: "8px",
-    cursor: "pointer"
+    cursor: "pointer",
+    fontWeight: "500",
+    width: "100%"
   },
 
   map: {
@@ -282,19 +314,21 @@ const styles = {
   },
 
   successText: {
-    color: "green",
+    color: "#4ade80",
     marginBottom: "10px",
-    fontSize: "14px"
+    fontSize: "14px",
+    fontWeight: "500"
   },
 
   drop: {
-    border: "2px dashed #ccc",
+    border: "2px dashed rgba(255, 255, 255, 0.2)",
     padding: "20px",
     textAlign: "center",
     borderRadius: "10px",
     cursor: "pointer",
     marginBottom: "15px",
-    background: "#fafafa"
+    background: "rgba(15, 23, 42, 0.4)",
+    color: "#cbd5e1"
   },
 
   file: {
@@ -314,14 +348,16 @@ const styles = {
     color: "white",
     border: "none",
     borderRadius: "10px",
-    cursor: "pointer"
+    cursor: "pointer",
+    fontWeight: "600"
   },
 
   successBox: {
-    background: "#dcfce7",
+    background: "rgba(34, 197, 94, 0.15)",
+    border: "1px solid rgba(34, 197, 94, 0.3)",
     padding: "10px",
     borderRadius: "8px",
     marginBottom: "15px",
-    color: "#166534"
+    color: "#4ade80"
   }
 };

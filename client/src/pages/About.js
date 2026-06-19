@@ -11,7 +11,7 @@ export default function About() {
         </p>
 
         <div style={styles.section}>
-          <h3>💡 What it does</h3>
+          <h3 style={styles.sectionHeading}>💡 What it does</h3>
           <ul style={styles.list}>
             <li>📍 Report civic issues with precise location</li>
             <li>🗺️ View and track issues on live map</li>
@@ -22,7 +22,7 @@ export default function About() {
         </div>
 
         <div style={styles.section}>
-          <h3>🎯 Key Features</h3>
+          <h3 style={styles.sectionHeading}>🎯 Key Features</h3>
           <ul style={styles.list}>
             <li>📸 Image-based issue reporting</li>
             <li>🔐 Role-based dashboards (User / Admin / Worker)</li>
@@ -32,7 +32,7 @@ export default function About() {
         </div>
 
         <div style={styles.section}>
-          <h3>🌍 Vision</h3>
+          <h3 style={styles.sectionHeading}>🌍 Vision</h3>
           <p style={styles.text}>
             Our goal is to build smarter cities by enabling faster
             communication between citizens and authorities, ensuring
@@ -41,8 +41,8 @@ export default function About() {
         </div>
 
         <div style={styles.footer}>
-          <p>👨‍💻 Developed by <b>Hitesh Chugh</b></p>
-          <p>🎓 Chandigarh University</p>
+          <p style={{ margin: "4px 0" }}>👨‍💻 Developed by <b style={{ color: "#ffffff" }}>Hitesh Chugh</b></p>
+          <p style={{ margin: "4px 0" }}>🎓 Chandigarh University</p>
         </div>
 
       </div>
@@ -50,36 +50,39 @@ export default function About() {
   );
 }
 
-
-// 🎨 IMPROVED STYLES
+// 🎨 PREMIUM DARK GLASSMORPHIC STYLES
 const styles = {
   container: {
     padding: "40px",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    background: "linear-gradient(135deg, #eef2ff, #f8fafc)",
-    minHeight: "100vh"
+    background: "radial-gradient(circle at 50% 50%, #0f172a 0%, #020617 100%)",
+    minHeight: "100vh",
+    color: "#f8fafc"
   },
 
   card: {
     maxWidth: "650px",
     width: "100%",
-    background: "rgba(255,255,255,0.75)",
-    backdropFilter: "blur(12px)",
+    background: "rgba(30, 41, 59, 0.45)",
+    backdropFilter: "blur(16px)",
+    border: "1px solid rgba(255, 255, 255, 0.08)",
     padding: "35px",
-    borderRadius: "18px",
-    boxShadow: "0 15px 35px rgba(0,0,0,0.12)",
+    borderRadius: "24px",
+    boxShadow: "0 20px 40px rgba(0, 0, 0, 0.35)",
     transition: "0.3s"
   },
 
   title: {
     fontSize: "28px",
-    marginBottom: "10px"
+    marginBottom: "10px",
+    color: "#ffffff",
+    fontWeight: "700"
   },
 
   subtitle: {
-    color: "#64748b",
+    color: "#94a3b8",
     marginBottom: "25px",
     fontSize: "15px",
     lineHeight: "1.6"
@@ -89,24 +92,32 @@ const styles = {
     marginTop: "25px"
   },
 
+  sectionHeading: {
+    color: "#ffffff",
+    fontSize: "18px",
+    fontWeight: "600",
+    marginBottom: "10px"
+  },
+
   list: {
     paddingLeft: "20px",
     marginTop: "10px",
-    lineHeight: "1.7"
+    lineHeight: "1.7",
+    color: "#cbd5e1"
   },
 
   text: {
     marginTop: "10px",
     lineHeight: "1.6",
-    color: "#334155"
+    color: "#cbd5e1"
   },
 
   footer: {
     marginTop: "30px",
     paddingTop: "15px",
-    borderTop: "1px solid #e2e8f0",
+    borderTop: "1px solid rgba(255, 255, 255, 0.08)",
     textAlign: "center",
-    color: "#475569",
+    color: "#94a3b8",
     fontSize: "14px"
   }
 };

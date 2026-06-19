@@ -35,47 +35,63 @@ const styles = {
   navbar: {
     position: "fixed",
     top: 0,
-    left:0,
+    left: 0,
     width: "100%",
     height: "60px",
-    background: "#fff",
+    background: "rgba(30, 41, 59, 0.65)",
+    backdropFilter: "blur(12px)",
+    borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
     padding: "0 20px",
-    boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
+    boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
     zIndex: 1000,
-    boxSizing: "border-box" // ✅ ADD THIS
+    boxSizing: "border-box",
+    color: "#ffffff"
   },
   menuBtn: {
-    fontSize: "20px",
-    background: "#0f172a",
+    fontSize: "18px",
+    background: "rgba(255, 255, 255, 0.08)",
     color: "white",
-    border: "none",
+    border: "1px solid rgba(255, 255, 255, 0.12)",
     padding: "8px 12px",
-    borderRadius: "6px",
-    cursor: "pointer"
+    borderRadius: "8px",
+    cursor: "pointer",
+    transition: "all 0.2s"
   },
-  title: { fontWeight: "600" },
+  title: {
+    fontWeight: "600",
+    color: "#ffffff",
+    margin: 0
+  },
   right: {
-  display: "flex",
-  alignItems: "center",
-  gap: "10px",
-  flexShrink: 0 // ✅ ADD THIS
-},
-  userBox: { display: "flex", alignItems: "center", gap: "6px" },
+    display: "flex",
+    alignItems: "center",
+    gap: "15px",
+    flexShrink: 0
+  },
+  userBox: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    color: "#e2e8f0"
+  },
   avatar: {
-    width: "30px",
-    height: "30px",
+    width: "32px",
+    height: "32px",
     borderRadius: "50%",
-    background: "#cbd5f5"
+    background: "linear-gradient(135deg, #3b82f6, #6366f1)",
+    border: "1px solid rgba(255, 255, 255, 0.2)"
   },
   logout: {
     background: "#ef4444",
     color: "white",
     border: "none",
-    padding: "6px 12px",
-    borderRadius: "6px",
-    cursor: "pointer"
+    padding: "8px 14px",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontWeight: "500",
+    transition: "all 0.2s"
   }
 };

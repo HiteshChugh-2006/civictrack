@@ -244,21 +244,25 @@ const styles = {
     display: "flex",
     justifyContent: "center",
     padding: "40px",
-    background: "#f1f5f9",
-    minHeight: "100vh"
+    background: "#0f172a",
+    minHeight: "100vh",
+    color: "#f8fafc"
   },
 
   card: {
-    background: "white",
+    background: "rgba(30, 41, 59, 0.45)",
+    backdropFilter: "blur(12px)",
+    border: "1px solid rgba(255, 255, 255, 0.08)",
     padding: "30px",
-    borderRadius: "14px",
+    borderRadius: "18px",
     width: "100%",
     maxWidth: "500px",
-    boxShadow: "0 10px 30px rgba(0,0,0,0.1)"
+    boxShadow: "0 10px 30px rgba(0,0,0,0.3)"
   },
 
   heading: {
-    marginBottom: "20px"
+    marginBottom: "20px",
+    color: "#ffffff"
   },
 
   inputGroup: {
@@ -269,25 +273,32 @@ const styles = {
   input: {
     width: "100%",
     padding: "12px",
-    border: "1px solid #ccc",
-    borderRadius: "8px"
+    border: "1px solid rgba(255,255,255,0.15)",
+    borderRadius: "8px",
+    background: "rgba(15, 23, 42, 0.6)",
+    color: "white",
+    outline: "none"
   },
 
   textarea: {
     width: "100%",
     padding: "12px",
-    border: "1px solid #ccc",
+    border: "1px solid rgba(255,255,255,0.15)",
     borderRadius: "8px",
-    minHeight: "80px"
+    minHeight: "80px",
+    background: "rgba(15, 23, 42, 0.6)",
+    color: "white",
+    outline: "none"
   },
 
   label: {
     position: "absolute",
     top: "-8px",
     left: "10px",
-    background: "white",
+    background: "#1e293b",
     padding: "0 5px",
-    fontSize: "12px"
+    fontSize: "12px",
+    color: "#94a3b8"
   },
 
   locationBtn: {

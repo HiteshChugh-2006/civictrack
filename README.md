@@ -7,7 +7,7 @@
 [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-darkgreen.svg?style=flat-square&logo=mongodb)](https://www.mongodb.com/)
 [![OpenRouter AI](https://img.shields.io/badge/AI-Gemma--2--9B-purple.svg?style=flat-square&logo=google)](https://openrouter.ai/)
 [![Leaflet](https://img.shields.io/badge/Leaflet-Mapping-orange.svg?style=flat-square&logo=leaflet)](https://leafletjs.com/)
-[![Live Demo](https://img.shields.io/badge/Demo-Render-brightgreen.svg?style=flat-square&logo=render)](https://civictrack.onrender.com)
+[![Live Demo](https://img.shields.io/badge/Demo-Render-brightgreen.svg?style=flat-square&logo=render)](https://civictrack-xis4.onrender.com)
 
 > A premium fullstack web application designed for civic issue reporting, automated mapping, role-based workflows (User, Admin, Worker), and AI-assisted civic support.
 

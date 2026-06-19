@@ -76,7 +76,7 @@ export default function AdminDashboard() {
   if (loading) return <h2 style={{ padding: 100 }}>Loading...</h2>;
 
   return (
-    <div style={{ display: "flex", background: "#f1f5f9" }}>
+    <div style={{ display: "flex", background: "#0f172a", minHeight: "100vh", color: "#f8fafc" }}>
       <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} />
       <Navbar setIsOpen={setIsOpen} />
 
@@ -88,21 +88,25 @@ export default function AdminDashboard() {
           width: "100%",
         }}
       >
-        <h1>🧑‍💼 Admin Dashboard</h1>
+        <h1 style={{ color: "#ffffff" }}>🧑‍💼 Admin Dashboard</h1>
 
         {/* 🔍 FILTER */}
-        <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
+        <div style={{ display: "flex", gap: "15px", marginBottom: "25px", flexWrap: "wrap", alignItems: "center" }}>
           <input
-            placeholder="Search..."
+            placeholder="Search issues..."
             value={search}
+            className="glass-input"
+            style={{ maxWidth: "300px", margin: 0 }}
             onChange={(e) => setSearch(e.target.value)}
           />
 
           <select
             value={filter}
+            className="glass-input"
+            style={{ maxWidth: "200px", margin: 0 }}
             onChange={(e) => setFilter(e.target.value)}
           >
-            <option value="all">All</option>
+            <option value="all">All Statuses</option>
             <option value="submitted">Submitted</option>
             <option value="assigned">Assigned</option>
             <option value="in-progress">In Progress</option>
@@ -202,11 +206,14 @@ export default function AdminDashboard() {
 
 /* 🎨 STYLES */
 const card = {
-  background: "white",
-  padding: "15px",
-  marginBottom: "15px",
-  borderRadius: "12px",
-  boxShadow: "0 5px 15px rgba(0,0,0,0.1)",
+  background: "rgba(30, 41, 59, 0.45)",
+  backdropFilter: "blur(12px)",
+  border: "1px solid rgba(255, 255, 255, 0.08)",
+  padding: "24px",
+  marginBottom: "20px",
+  borderRadius: "16px",
+  boxShadow: "0 8px 32px 0 rgba(0, 0, 0, 0.3)",
+  color: "#f8fafc"
 };
 
 const img = {

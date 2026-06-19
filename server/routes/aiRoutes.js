@@ -9,35 +9,70 @@ router.post("/chat", async (req, res) => {
 
     let reply = "";
     try {
-      const response = await axios.post(
-        "https://openrouter.ai/api/v1/chat/completions",
-        {
-          model: "google/gemma-2-9b-it:free",
-          messages: [
+      const apiKey = process.env.OPENROUTER_API_KEY || process.env.OPENROUTER_KEY;
+      if (!apiKey) {
+        throw new Error("No OpenRouter API key found in environment variables.");
+      }
+
+      const models = [
+        "google/gemma-2-9b-it:free",
+        "meta-llama/llama-3-8b-instruct:free",
+        "mistralai/mistral-7b-instruct:free",
+        "qwen/qwen-2-7b-instruct:free"
+      ];
+
+      let success = false;
+      let apiError = null;
+
+      for (const model of models) {
+        try {
+          console.log(`Attempting OpenRouter request with model: ${model}`);
+          const response = await axios.post(
+            "https://openrouter.ai/api/v1/chat/completions",
             {
-              role: "system",
-              content:
-                "You are a civic assistant. Help users with civic issues like garbage, roads, water, electricity."
+              model: model,
+              messages: [
+                {
+                  role: "system",
+                  content: "You are a helpful civic assistant for CivicTrack. Help citizens report issues (potholes, garbage, water leakage, street light failures, road damage, sewage) and understand the system status. Keep answers clear and helpful."
+                },
+                {
+                  role: "user",
+                  content: message
+                }
+              ]
             },
             {
-              role: "user",
-              content: message
+              headers: {
+                Authorization: `Bearer ${apiKey}`,
+                "Content-Type": "application/json",
+                "HTTP-Referer": "https://civictrack-xis4.onrender.com",
+                "X-Title": "CivicTrack"
+              },
+              timeout: 10000 // 10 seconds timeout
             }
-          ]
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-            "Content-Type": "application/json"
-          },
-          timeout: 6000 // 6 seconds timeout
-        }
-      );
+          );
 
-      reply = response.data.choices[0].message.content;
+          if (response.data && response.data.choices && response.data.choices[0] && response.data.choices[0].message) {
+            reply = response.data.choices[0].message.content;
+            success = true;
+            console.log(`Successfully generated response using model: ${model}`);
+            break;
+          } else {
+            throw new Error("Unexpected API response structure");
+          }
+        } catch (err) {
+          apiError = err;
+          console.log(`OpenRouter attempt failed with model ${model}:`, err.message);
+        }
+      }
+
+      if (!success) {
+        throw apiError || new Error("All OpenRouter models failed");
+      }
 
     } catch (err) {
-      console.log("OpenRouter API error/timeout, using local fallback assistant:", err.message);
+      console.log("OpenRouter API error/fallback triggered, using local fallback assistant:", err.message);
       
       const msg = (message || "").toLowerCase();
       if (msg.includes("hello") || msg.includes("hi") || msg.includes("hey")) {

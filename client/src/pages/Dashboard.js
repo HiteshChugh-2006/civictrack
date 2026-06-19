@@ -107,8 +107,8 @@ export default function Dashboard() {
                       <Cell key={i} fill={COLORS[i]} />
                     ))}
                   </Pie>
-                  <Tooltip />
-                  <Legend />
+                  <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#475569', color: '#fff' }} />
+                  <Legend wrapperStyle={{ color: '#cbd5e1' }} />
                 </PieChart>
               </ResponsiveContainer>
             )}
@@ -123,9 +123,9 @@ export default function Dashboard() {
             ) : (
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={barData}>
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
+                  <XAxis dataKey="name" stroke="#94a3b8" />
+                  <YAxis stroke="#94a3b8" />
+                  <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#475569', color: '#fff' }} />
                   <Bar dataKey="value" fill="#3b82f6" radius={[6,6,0,0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -157,13 +157,12 @@ const Action = ({ title, onClick }) => (
 );
 
 
-/* STYLES */
-
 const styles = {
   wrapper: {
     display: "flex",
-    background: "#f1f5f9",
-    minHeight: "100vh"
+    background: "#0f172a",
+    minHeight: "100vh",
+    color: "#f8fafc"
   },
 
   main: {
@@ -174,12 +173,13 @@ const styles = {
   },
 
   welcome: {
-    color: "#64748b",
+    color: "#94a3b8",
     marginBottom: "5px"
   },
 
   heading: {
-    marginBottom: "20px"
+    marginBottom: "20px",
+    color: "#ffffff"
   },
 
   grid: {
@@ -190,24 +190,33 @@ const styles = {
   },
 
   card: {
-    background: "#ffffff",
+    background: "rgba(30, 41, 59, 0.45)",
+    backdropFilter: "blur(12px)",
+    border: "1px solid rgba(255, 255, 255, 0.08)",
     padding: "20px",
     borderRadius: "12px",
-    boxShadow: "0 4px 10px rgba(0,0,0,0.08)"
+    boxShadow: "0 8px 32px 0 rgba(0, 0, 0, 0.3)"
   },
 
   cardTitle: {
-    color: "#6b7280"
+    color: "#94a3b8",
+    fontSize: "14px",
+    fontWeight: "500",
+    marginBottom: "8px"
   },
 
   action: {
-    background: "#ffffff",
+    background: "rgba(30, 41, 59, 0.45)",
+    backdropFilter: "blur(12px)",
+    border: "1px solid rgba(255, 255, 255, 0.08)",
     padding: "20px",
     borderRadius: "12px",
     cursor: "pointer",
     textAlign: "center",
-    fontWeight: "500",
-    boxShadow: "0 4px 10px rgba(0,0,0,0.08)"
+    fontWeight: "600",
+    boxShadow: "0 8px 32px 0 rgba(0, 0, 0, 0.3)",
+    color: "#ffffff",
+    transition: "all 0.2s ease"
   },
 
   chartGrid: {
@@ -217,9 +226,12 @@ const styles = {
   },
 
   chartCard: {
-    background: "#ffffff",
+    background: "rgba(30, 41, 59, 0.45)",
+    backdropFilter: "blur(12px)",
+    border: "1px solid rgba(255, 255, 255, 0.08)",
     padding: "20px",
     borderRadius: "14px",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.08)"
+    boxShadow: "0 8px 32px 0 rgba(0, 0, 0, 0.3)",
+    color: "#ffffff"
   }
 };

@@ -1,11 +1,15 @@
 import { useEffect, useState, useCallback } from "react";
 import API from "../api";
+import Sidebar from "../components/Sidebar";
+import Navbar from "../components/Navbar";
+import Chatbot from "../components/Chatbot";
 
 export default function Issues() {
   const BASE_URL = process.env.REACT_APP_API_URL || "";
   const [issues, setIssues] = useState([]);
   const [activeTab, setActiveTab] = useState("my"); // "my" or "city"
   const [loading, setLoading] = useState(true);
+  const [isOpen, setIsOpen] = useState(true);
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
 
@@ -43,138 +47,153 @@ export default function Issues() {
   };
 
   return (
-    <div style={styles.container}>
-      <h2 style={styles.title}>Civic Issues Feed</h2>
+    <div style={styles.wrapper}>
+      <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} />
+      <Navbar setIsOpen={setIsOpen} />
 
-      {/* TABS */}
-      <div style={styles.tabContainer}>
-        <button
-          style={{
-            ...styles.tabBtn,
-            background: activeTab === "my" ? "#2563eb" : "transparent",
-            color: activeTab === "my" ? "white" : "#94a3b8",
-            border: activeTab === "my" ? "1px solid #2563eb" : "1px solid #475569"
-          }}
-          onClick={() => {
-            setLoading(true);
-            setActiveTab("my");
-          }}
-        >
-          📁 My Issues
-        </button>
+      <div style={{
+        ...styles.main,
+        marginLeft: isOpen ? "220px" : "20px"
+      }}>
+        <h2 style={styles.title}>Civic Issues Feed</h2>
 
-        <button
-          style={{
-            ...styles.tabBtn,
-            background: activeTab === "city" ? "#2563eb" : "transparent",
-            color: activeTab === "city" ? "white" : "#94a3b8",
-            border: activeTab === "city" ? "1px solid #2563eb" : "1px solid #475569"
-          }}
-          onClick={() => {
-            setLoading(true);
-            setActiveTab("city");
-          }}
-        >
-          🌎 Browse City Issues
-        </button>
-      </div>
+        {/* TABS */}
+        <div style={styles.tabContainer}>
+          <button
+            style={{
+              ...styles.tabBtn,
+              background: activeTab === "my" ? "#2563eb" : "transparent",
+              color: activeTab === "my" ? "white" : "#94a3b8",
+              border: activeTab === "my" ? "1px solid #2563eb" : "1px solid #475569"
+            }}
+            onClick={() => {
+              setLoading(true);
+              setActiveTab("my");
+            }}
+          >
+            📁 My Issues
+          </button>
 
-      {loading ? (
-        <p style={{ textAlign: "center", color: "#94a3b8" }}>Loading issues...</p>
-      ) : issues.length === 0 ? (
-        <p style={{ textAlign: "center", color: "#94a3b8", marginTop: "20px" }}>
-          No issues found in this tab.
-        </p>
-      ) : (
-        <div style={styles.issuesList}>
-          {issues.map(issue => {
-            const hasVoted = Array.isArray(issue.votes) && issue.votes.includes(user._id);
-            const voteCount = Array.isArray(issue.votes) ? issue.votes.length : 0;
+          <button
+            style={{
+              ...styles.tabBtn,
+              background: activeTab === "city" ? "#2563eb" : "transparent",
+              color: activeTab === "city" ? "white" : "#94a3b8",
+              border: activeTab === "city" ? "1px solid #2563eb" : "1px solid #475569"
+            }}
+            onClick={() => {
+              setLoading(true);
+              setActiveTab("city");
+            }}
+          >
+            🌎 Browse City Issues
+          </button>
+        </div>
 
-            return (
-              <div key={issue._id} style={styles.card}>
-                <div style={styles.cardHeader}>
-                  <h3 style={styles.cardTitle}>{issue.title}</h3>
-                  <span style={{
-                    ...styles.statusBadge,
-                    background: issue.status === "resolved" ? "#22c55e" : issue.status === "in-progress" ? "#3b82f6" : "#f59e0b"
-                  }}>
-                    {issue.status}
-                  </span>
-                </div>
+        {loading ? (
+          <p style={{ textAlign: "center", color: "#94a3b8" }}>Loading issues...</p>
+        ) : issues.length === 0 ? (
+          <p style={{ textAlign: "center", color: "#94a3b8", marginTop: "20px" }}>
+            No issues found in this tab.
+          </p>
+        ) : (
+          <div style={styles.issuesList}>
+            {issues.map(issue => {
+              const hasVoted = Array.isArray(issue.votes) && issue.votes.includes(user._id);
+              const voteCount = Array.isArray(issue.votes) ? issue.votes.length : 0;
 
-                <p style={styles.desc}>{issue.description}</p>
-                <p style={styles.meta}>👤 Reported by: <b>{issue.createdBy?.name || "Anonymous"}</b></p>
-                
-                {issue.assignedTo?.name && (
-                  <p style={styles.meta}>👷 Assigned to: <b>{issue.assignedTo.name}</b></p>
-                )}
+              return (
+                <div key={issue._id} style={styles.card}>
+                  <div style={styles.cardHeader}>
+                    <h3 style={styles.cardTitle}>{issue.title}</h3>
+                    <span style={{
+                      ...styles.statusBadge,
+                      background: issue.status === "resolved" ? "#22c55e" : issue.status === "in-progress" ? "#3b82f6" : "#f59e0b"
+                    }}>
+                      {issue.status}
+                    </span>
+                  </div>
 
-                {/* 🖼 ORIGINAL IMAGE */}
-                {issue.image && (
-                  <img
-                    src={`${BASE_URL}/uploads/${issue.image}`}
-                    style={styles.img}
-                    alt="Issue Detail"
-                  />
-                )}
+                  <p style={styles.desc}>{issue.description}</p>
+                  <p style={styles.meta}>👤 Reported by: <b>{issue.createdBy?.name || "Anonymous"}</b></p>
+                  
+                  {issue.assignedTo?.name && (
+                    <p style={styles.meta}><b>👷 Assigned to:</b> {issue.assignedTo.name}</p>
+                  )}
 
-                {/* 📸 COMPLETION IMAGE */}
-                {issue.completionImage && (
-                  <div style={styles.completionContainer}>
-                    <p style={styles.completionText}>📸 Resolution Details:</p>
+                  {/* 🖼 ORIGINAL IMAGE */}
+                  {issue.image && (
                     <img
-                      src={`${BASE_URL}/uploads/${issue.completionImage}`}
+                      src={`${BASE_URL}/uploads/${issue.image}`}
                       style={styles.img}
-                      alt="Resolution Progress"
+                      alt="Issue Detail"
                     />
-                    {issue.remarks && (
-                      <p style={styles.remarks}><b>Remarks:</b> {issue.remarks}</p>
+                  )}
+
+                  {/* 📸 COMPLETION IMAGE */}
+                  {issue.completionImage && (
+                    <div style={styles.completionContainer}>
+                      <p style={styles.completionText}>📸 Resolution Details:</p>
+                      <img
+                        src={`${BASE_URL}/uploads/${issue.completionImage}`}
+                        style={styles.img}
+                        alt="Resolution Progress"
+                      />
+                      {issue.remarks && (
+                        <p style={styles.remarks}><b>Remarks:</b> {issue.remarks}</p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* VOTING FOOTER */}
+                  <div style={styles.footer}>
+                    <span style={styles.voteCount}>🗳️ {voteCount} upvotes</span>
+                    {activeTab === "city" && (
+                      <button
+                        onClick={() => handleVote(issue._id)}
+                        style={{
+                          ...styles.voteBtn,
+                          background: hasVoted ? "#16a34a" : "#3b82f6",
+                          boxShadow: hasVoted ? "0 4px 10px rgba(22, 163, 74, 0.3)" : "0 4px 10px rgba(59, 130, 246, 0.3)"
+                        }}
+                      >
+                        {hasVoted ? "Voted 👍" : "Upvote 🗳️"}
+                      </button>
                     )}
                   </div>
-                )}
-
-                {/* VOTING FOOTER */}
-                <div style={styles.footer}>
-                  <span style={styles.voteCount}>🗳️ {voteCount} upvotes</span>
-                  {activeTab === "city" && (
-                    <button
-                      onClick={() => handleVote(issue._id)}
-                      style={{
-                        ...styles.voteBtn,
-                        background: hasVoted ? "#16a34a" : "#3b82f6",
-                        boxShadow: hasVoted ? "0 4px 10px rgba(22, 163, 74, 0.3)" : "0 4px 10px rgba(59, 130, 246, 0.3)"
-                      }}
-                    >
-                      {hasVoted ? "Voted 👍" : "Upvote 🗳️"}
-                    </button>
-                  )}
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+              );
+            })}
+          </div>
+        )}
+      </div>
+      <Chatbot />
     </div>
   );
 }
 
 const styles = {
-  container: {
-    padding: "30px",
+  wrapper: {
+    display: "flex",
     background: "#0f172a",
     minHeight: "100vh",
     color: "#f8fafc"
+  },
+  main: {
+    padding: "30px",
+    width: "100%",
+    marginTop: "60px",
+    transition: "0.3s"
   },
   title: {
     fontSize: "28px",
     fontWeight: "700",
     marginBottom: "20px",
-    textAlign: "center"
+    color: "#ffffff"
   },
   tabContainer: {
     display: "flex",
-    justifyContent: "center",
+    justifyContent: "flex-start",
     gap: "15px",
     marginBottom: "30px"
   },
@@ -188,13 +207,12 @@ const styles = {
   },
   issuesList: {
     maxWidth: "800px",
-    margin: "0 auto",
     display: "flex",
     flexDirection: "column",
     gap: "20px"
   },
   card: {
-    background: "rgba(30, 41, 59, 0.5)",
+    background: "rgba(30, 41, 59, 0.45)",
     backdropFilter: "blur(12px)",
     border: "1px solid rgba(255, 255, 255, 0.08)",
     padding: "24px",
