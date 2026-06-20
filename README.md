@@ -19,12 +19,23 @@
 
 *   **📍 Interactive Leaflet Maps**: Real-time geolocation targeting and issue plotting with status-based marker coloring.
 *   **👥 Role-Based Workspaces**:
-    *   **User Dashboard**: Report local issues with geo-locations, descriptions, and photographic evidence.
-    *   **Admin Dashboard**: Manage, search, filter, and assign reported issues to workers.
-    *   **Worker Dashboard**: View assigned tasks, update work status, upload resolution images, and document remarks.
-*   **🤖 AI Civic Assistant**: Intelligent assistant powered by `google/gemma-2-9b-it:free` through OpenRouter to guide users on reporting steps and city rules.
-*   **🔒 Secure Operations**: JWT-based login credentials, bcrypt password hashing, and endpoint-level assignment validations.
-*   **✨ Premium Visual Experience**: Dark radial gradients, modern Outfit typeface, glassmorphic layout elements, and micro-interactive transitions.
+    *   **User Dashboard**: Report local issues, track contributions, and check resolution updates.
+    *   **Admin Dashboard**: Manage, search, filter, assign issues, and publish announcements.
+    *   **Worker Dashboard**: View assigned tasks, start work, upload resolution images, and document remarks.
+*   **🔒 Enterprise Security**:
+    *   **Google 2FA OTP**: Configure Google Authenticator TOTP from your profile to enforce double-factor security upon sign-in.
+    *   **Social Sign-In**: Register or authenticate instantly with Google, Facebook, and Twitter credentials.
+    *   **Forgot Password Recovery**: Request self-service token-based password resetting with automated console token logging.
+*   **🏆 Gamification & Engagement**:
+    *   **Achievements Badges**: Citizens and Workers unlock medals (Civic Starter, Swift Resolver, Civic Hero) based on activities and resolutions.
+    *   **Leaderboard Feed**: Standings tables ranking top citizens (by reports & upvotes) and top workers (by resolutions).
+*   **📢 Bulletins & Alerts**:
+    *   **City News Alerts**: Admin-created bulletins displayed in color-coded cards (alerts, updates, updates) on user dashboards.
+    *   **City Health score**: Live calculated resolution ratio showing overall city status.
+    *   **Notification Bell Drawer**: Dropdown bell alerts in the Navbar detailing issue updates.
+*   **📥 CSV Exporter (Admin)**: Dynamic generation and downloading of all city issues in spreadsheet CSV format.
+*   **🤖 AI ChatGPT-Style Assistant**: Floating chatbot with sequential OpenRouter free model fallbacks (Gemma, Llama, Mistral) capable of answering both platform-specific and general knowledge questions.
+*   **✨ 3D Visual Constellations**: Interactive canvas particle networks on Login and Register backgrounds that float, connect, and react to cursor movements.
 
 ---
 
