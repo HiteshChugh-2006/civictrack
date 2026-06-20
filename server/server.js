@@ -27,8 +27,15 @@ app.use("/api/news", require("./routes/newsRoutes"));
 
 app.use("/uploads", express.static("uploads"));
 
-const PORT = process.env.PORT || 5000;
-const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/civictrack";
+let PORT = process.env.PORT || 5000;
+if (PORT === "undefined" || PORT === "null" || !PORT) {
+  PORT = 5000;
+}
+
+let MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/civictrack";
+if (MONGO_URI === "undefined" || MONGO_URI === "null" || !MONGO_URI) {
+  MONGO_URI = "mongodb://127.0.0.1:27017/civictrack";
+}
 
 // DB
 mongoose.connect(MONGO_URI)
