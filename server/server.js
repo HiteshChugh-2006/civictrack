@@ -27,14 +27,17 @@ app.use("/api/news", require("./routes/newsRoutes"));
 
 app.use("/uploads", express.static("uploads"));
 
+const PORT = process.env.PORT || 5000;
+const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/civictrack";
+
 // DB
-mongoose.connect(process.env.MONGO_URI)
+mongoose.connect(MONGO_URI)
 .then(() => console.log("MongoDB Connected"))
-.catch(err => console.log(err));
+.catch(err => console.log("MongoDB Connection Error:", err.message));
 
 // SERVER
-app.listen(process.env.PORT, () =>
-  console.log(`Server running on port ${process.env.PORT}`)
+app.listen(PORT, () =>
+  console.log(`Server running on port ${PORT}`)
 );
 
 // Serve frontend

@@ -5,7 +5,7 @@ const OpenAI = require("openai");
 // 🔥 OpenRouter setup (FREE AI)
 const openai = new OpenAI({
   baseURL: "https://openrouter.ai/api/v1",
-  apiKey: process.env.OPENROUTER_API_KEY,
+  apiKey: process.env.OPENROUTER_API_KEY || "dummy_key_to_prevent_startup_crash",
 });
 
 router.post("/", async (req, res) => {

@@ -8,26 +8,26 @@ export default function Sidebar({ isOpen, setIsOpen }) {
 
   const menus = {
     admin: [
-      { label: "Dashboard", path: "/admin" },
-      { label: "Manage Issues", path: "/admin/issues" },
-      { label: "Map", path: "/map" },
-      { label: "Profile", path: "/profile" },
-      { label: "Leaderboard", path: "/leaderboard" },
-      { label: "Help & FAQ", path: "/faq" }
+      { label: "Dashboard", path: "/admin", icon: "📊" },
+      { label: "Manage Issues", path: "/admin/issues", icon: "⚙️" },
+      { label: "Map View", path: "/map", icon: "🗺️" },
+      { label: "My Profile", path: "/profile", icon: "👤" },
+      { label: "Leaderboard", path: "/leaderboard", icon: "🏆" },
+      { label: "Help & FAQ", path: "/faq", icon: "💬" }
     ],
     worker: [
-      { label: "Dashboard", path: "/worker" },
-      { label: "Profile", path: "/profile" },
-      { label: "Leaderboard", path: "/leaderboard" },
-      { label: "Help & FAQ", path: "/faq" }
+      { label: "Dashboard", path: "/worker", icon: "👷" },
+      { label: "My Profile", path: "/profile", icon: "👤" },
+      { label: "Leaderboard", path: "/leaderboard", icon: "🏆" },
+      { label: "Help & FAQ", path: "/faq", icon: "💬" }
     ],
     user: [
-      { label: "Dashboard", path: "/dashboard" },
-      { label: "Report Issue", path: "/create" },
-      { label: "My Issues", path: "/issues" },
-      { label: "Profile", path: "/profile" },
-      { label: "Leaderboard", path: "/leaderboard" },
-      { label: "Help & FAQ", path: "/faq" }
+      { label: "Dashboard", path: "/dashboard", icon: "📊" },
+      { label: "Report Issue", path: "/create", icon: "📍" },
+      { label: "My Issues", path: "/issues", icon: "📋" },
+      { label: "My Profile", path: "/profile", icon: "👤" },
+      { label: "Leaderboard", path: "/leaderboard", icon: "🏆" },
+      { label: "Help & FAQ", path: "/faq", icon: "💬" }
     ]
   };
 
@@ -41,7 +41,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         ...styles.sidebar,
         transform: isOpen ? "translateX(0)" : "translateX(-100%)"
       }}>
-        <h2 style={styles.brandTitle} onClick={() => navigate("/")}>🚀 CivicTrack</h2>
+        <h2 className="sidebar-brand" onClick={() => navigate("/")}>🚀 CivicTrack</h2>
 
         <div style={styles.menuContainer}>
           {menus[role] && menus[role].map((item, i) => {
@@ -49,25 +49,36 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             return (
               <div
                 key={i}
-                style={{
-                  ...styles.item,
-                  background: isActive ? "rgba(255, 255, 255, 0.08)" : "transparent",
-                  borderLeft: isActive ? "4px solid #3b82f6" : "4px solid transparent",
-                  paddingLeft: isActive ? "16px" : "12px",
-                  color: isActive ? "#ffffff" : "#94a3b8"
-                }}
+                className={`sidebar-item ${isActive ? "active" : ""}`}
                 onClick={() => {
                   navigate(item.path);
                   setIsOpen(false);
                 }}
               >
-                {item.label}
+                <span style={{ fontSize: "16px" }}>{item.icon}</span>
+                <span>{item.label}</span>
               </div>
             );
           })}
         </div>
 
-        {/* ✅ LOGOUT FIXED POSITION */}
+        {/* PROFILE CARD */}
+        {user.name && (
+          <div className="sidebar-user-card" onClick={() => {
+            navigate("/profile");
+            setIsOpen(false);
+          }} style={{ cursor: "pointer" }}>
+            <div className="sidebar-user-avatar">
+              {user.name[0].toUpperCase()}
+            </div>
+            <div className="sidebar-user-info">
+              <span className="sidebar-user-name">{user.name}</span>
+              <span className="sidebar-user-role">{user.role}</span>
+            </div>
+          </div>
+        )}
+
+        {/* LOGOUT */}
         <div style={styles.logout} onClick={() => {
           localStorage.clear();
           navigate("/");
@@ -92,32 +103,15 @@ const styles = {
     boxShadow: "4px 0 20px rgba(0,0,0,0.3)",
     borderRight: "1px solid rgba(255, 255, 255, 0.05)",
     display: "flex",
-    flexDirection: "column"
-  },
-  brandTitle: {
-    margin: "0 0 30px 0",
-    fontSize: "20px",
-    fontWeight: "700",
-    color: "#ffffff",
-    cursor: "pointer",
-    textAlign: "center"
+    flexDirection: "column",
+    boxSizing: "border-box"
   },
   menuContainer: {
-    flex: 1,
     display: "flex",
     flexDirection: "column",
     gap: "5px"
   },
-  item: {
-    padding: "12px",
-    cursor: "pointer",
-    borderRadius: "8px",
-    fontSize: "14px",
-    fontWeight: "500",
-    transition: "all 0.2s ease"
-  },
   logout: {
-    marginTop: "auto",
     background: "#ef4444",
     color: "white",
     padding: "12px",
