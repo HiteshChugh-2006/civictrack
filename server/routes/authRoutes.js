@@ -4,6 +4,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const User = require("../models/User");
+const PendingUser = require("../models/PendingUser");
 const auth = require("../middleware/auth");
 
 // ==========================================
@@ -82,16 +83,76 @@ router.post("/register", async (req, res) => {
       return res.status(400).json("User already exists");
     }
 
+    // Clean up previous registration attempts for this email
+    await PendingUser.deleteMany({ email });
+
+    // Generate 6-digit verification code
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+
     const hashed = await bcrypt.hash(password, 10);
 
-    const user = await User.create({
+    // Create PendingUser entry
+    await PendingUser.create({
       name,
       email,
       password: hashed,
-      role: role || "citizen"
+      otpCode
     });
 
-    res.json(user);
+    console.log(`\n==========================================`);
+    console.log(`📧 [EMAIL OTP] Verification Code for ${email}: ${otpCode}`);
+    console.log(`==========================================\n`);
+
+    res.json({
+      success: true,
+      requireOTP: true,
+      email,
+      message: "Verification OTP generated. Code printed in server console."
+    });
+
+  } catch (err) {
+    res.status(500).json(err.message);
+  }
+});
+
+// ================= VERIFY REGISTER OTP =================
+router.post("/verify-otp", async (req, res) => {
+  try {
+    const { email, code } = req.body;
+
+    const pending = await PendingUser.findOne({ email });
+    if (!pending) {
+      return res.status(400).json("No registration request found or OTP expired. Please sign up again.");
+    }
+
+    if (pending.otpCode !== code) {
+      return res.status(400).json("Invalid verification code. Please try again.");
+    }
+
+    // Move to User collection
+    const user = await User.create({
+      name: pending.name,
+      email: pending.email,
+      password: pending.password,
+      role: "citizen"
+    });
+
+    // Delete pending record
+    await PendingUser.deleteOne({ _id: pending._id });
+
+    // Auto-generate token to log them in immediately
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    res.json({
+      success: true,
+      token,
+      user,
+      message: "Account verified and registered successfully!"
+    });
 
   } catch (err) {
     res.status(500).json(err.message);

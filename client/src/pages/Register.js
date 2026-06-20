@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import API from "../api"; // ✅ FIXED
+import API from "../api";
 import { useNavigate } from "react-router-dom";
 
 export default function Register() {
@@ -10,6 +10,12 @@ export default function Register() {
   });
 
   const navigate = useNavigate();
+
+  // OTP Verification States
+  const [showOTP, setShowOTP] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [emailForOTP, setEmailForOTP] = useState("");
 
   // Canvas particle background effect
   useEffect(() => {
@@ -103,6 +109,7 @@ export default function Register() {
     };
   }, []);
 
+  // Submit Registration (triggers OTP code dispatch)
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -112,14 +119,49 @@ export default function Register() {
     }
 
     try {
-      await API.post("/auth/register", data); // ✅ FIXED
-
-      alert("Registered Successfully ✅");
-      navigate("/");
+      const res = await API.post("/auth/register", data);
+      
+      if (res.data.requireOTP) {
+        setEmailForOTP(res.data.email);
+        setShowOTP(true);
+        alert("✉️ Verification OTP code sent to your email! (Please check backend console logs)");
+      } else {
+        alert("Registered Successfully ✅");
+        navigate("/");
+      }
 
     } catch (err) {
       console.error(err);
-      alert(err?.response?.data || "Error ❌");
+      alert(err?.response?.data || "Registration failed ❌");
+    }
+  };
+
+  // Submit OTP Code Validation
+  const handleVerifyOTP = async (e) => {
+    e.preventDefault();
+    if (otpCode.length !== 6) {
+      alert("Please enter a valid 6-digit OTP code");
+      return;
+    }
+
+    try {
+      setOtpLoading(true);
+      const res = await API.post("/auth/verify-otp", {
+        email: emailForOTP,
+        code: otpCode
+      });
+      
+      const { token, user } = res.data;
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+      
+      alert("Account Verified & Registered Successfully! 🎉");
+      navigate("/dashboard");
+
+    } catch (err) {
+      alert(err.response?.data || "Verification failed! Check code.");
+    } finally {
+      setOtpLoading(false);
     }
   };
 
@@ -128,51 +170,84 @@ export default function Register() {
       <canvas id="register-particles" className="particle-canvas" />
 
       <div className="glass-card" style={{ zIndex: 2 }}>
-        <div style={styles.iconContainer}>📝</div>
-        <h2 style={styles.title}>Create Account</h2>
-        <p style={styles.subtitle}>Join CivicTrack to report & track issues.</p>
+        {showOTP ? (
+          /* OTP VERIFICATION VIEW */
+          <form onSubmit={handleVerifyOTP}>
+            <div style={styles.iconContainer}>✉️</div>
+            <h2 style={styles.title}>Email OTP Verification</h2>
+            <p style={styles.subtitle}>Enter the 6-digit verification code sent to <b>{emailForOTP}</b>.</p>
 
-        <form onSubmit={handleSubmit}>
-          <input
-            placeholder="Full Name"
-            value={data.name}
-            className="glass-input"
-            onChange={(e) =>
-              setData({ ...data, name: e.target.value })
-            }
-            required
-          />
+            <input
+              placeholder="e.g. 123456"
+              value={otpCode}
+              className="glass-input"
+              style={{ textAlign: "center", fontSize: "18px", letterSpacing: "5px" }}
+              maxLength={6}
+              onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+              required
+            />
 
-          <input
-            type="email"
-            placeholder="Email Address"
-            value={data.email}
-            className="glass-input"
-            onChange={(e) =>
-              setData({ ...data, email: e.target.value })
-            }
-            required
-          />
+            <button type="submit" className="premium-btn" disabled={otpLoading}>
+              {otpLoading ? "Verifying..." : "Verify & Activate"}
+            </button>
 
-          <input
-            type="password"
-            placeholder="Password"
-            value={data.password}
-            className="glass-input"
-            onChange={(e) =>
-              setData({ ...data, password: e.target.value })
-            }
-            required
-          />
+            <p className="premium-link" onClick={() => {
+              setShowOTP(false);
+              setOtpCode("");
+            }}>
+              Back to Register
+            </p>
+          </form>
+        ) : (
+          /* STANDARD REGISTRATION VIEW */
+          <div>
+            <div style={styles.iconContainer}>📝</div>
+            <h2 style={styles.title}>Create Account</h2>
+            <p style={styles.subtitle}>Join CivicTrack to report & track issues.</p>
 
-          <button type="submit" className="premium-btn">
-            Register
-          </button>
-        </form>
+            <form onSubmit={handleSubmit}>
+              <input
+                placeholder="Full Name"
+                value={data.name}
+                className="glass-input"
+                onChange={(e) =>
+                  setData({ ...data, name: e.target.value })
+                }
+                required
+              />
 
-        <p onClick={() => navigate("/")} className="premium-link">
-          Already have an account? Login
-        </p>
+              <input
+                type="email"
+                placeholder="Email Address"
+                value={data.email}
+                className="glass-input"
+                onChange={(e) =>
+                  setData({ ...data, email: e.target.value })
+                }
+                required
+              />
+
+              <input
+                type="password"
+                placeholder="Password"
+                value={data.password}
+                className="glass-input"
+                onChange={(e) =>
+                  setData({ ...data, password: e.target.value })
+                }
+                required
+              />
+
+              <button type="submit" className="premium-btn">
+                Register
+              </button>
+            </form>
+
+            <p onClick={() => navigate("/")} className="premium-link">
+              Already have an account? Login
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
