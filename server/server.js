@@ -23,6 +23,7 @@ app.use("/api/issues", require("./routes/issueRoutes"));
 app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/chat", require("./routes/chatRoutes"));
 app.use("/api/ai", require("./routes/aiRoutes"));
+app.use("/api/news", require("./routes/newsRoutes"));
 
 app.use("/uploads", express.static("uploads"));
 

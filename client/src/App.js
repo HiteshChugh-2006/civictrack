@@ -11,6 +11,9 @@ import MapView from "./pages/MapView";
 import About from "./pages/About";
 
 import ProtectedRoute from "./components/ProtectedRoute";
+import Profile from "./pages/Profile";
+import Leaderboard from "./pages/Leaderboard";
+import FAQ from "./pages/FAQ";
 
 function DynamicDashboardRedirect() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -42,6 +45,9 @@ function App() {
         <Route path="/create" element={<ProtectedRoute><CreateIssue /></ProtectedRoute>} />
         <Route path="/issues" element={<ProtectedRoute><Issues /></ProtectedRoute>} />
         <Route path="/map" element={<ProtectedRoute><MapView /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
+        <Route path="/faq" element={<ProtectedRoute><FAQ /></ProtectedRoute>} />
 
         {/* ADMIN */}
         <Route path="/admin" element={

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import API from "../api"; // ✅ FIXED
 import { useNavigate } from "react-router-dom";
 
@@ -10,6 +10,98 @@ export default function Register() {
   });
 
   const navigate = useNavigate();
+
+  // Canvas particle background effect
+  useEffect(() => {
+    const canvas = document.getElementById("register-particles");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    const handleResize = () => {
+      width = (canvas.width = window.innerWidth);
+      height = (canvas.height = window.innerHeight);
+    };
+    window.addEventListener("resize", handleResize);
+
+    const particles = [];
+    const count = 55;
+
+    for (let i = 0; i < count; i++) {
+      particles.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.8,
+        vy: (Math.random() - 0.5) * 0.8,
+        radius: Math.random() * 2 + 1
+      });
+    }
+
+    let mouse = { x: null, y: null };
+    const handleMouseMove = (e) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+    };
+    const handleMouseLeave = () => {
+      mouse.x = null;
+      mouse.y = null;
+    };
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseleave", handleMouseLeave);
+
+    let frameId;
+    const animate = () => {
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = "rgba(59, 130, 246, 0.35)";
+      ctx.strokeStyle = "rgba(59, 130, 246, 0.08)";
+
+      particles.forEach((p, idx) => {
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.x < 0 || p.x > width) p.vx *= -1;
+        if (p.y < 0 || p.y > height) p.vy *= -1;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        for (let j = idx + 1; j < particles.length; j++) {
+          const p2 = particles[j];
+          const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+          if (dist < 100) {
+            ctx.lineWidth = 1 - dist / 100;
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+          }
+        }
+
+        if (mouse.x && mouse.y) {
+          const mDist = Math.hypot(p.x - mouse.x, p.y - mouse.y);
+          if (mDist < 120) {
+            const angle = Math.atan2(p.y - mouse.y, p.x - mouse.x);
+            p.x += Math.cos(angle) * 1.5;
+            p.y += Math.sin(angle) * 1.5;
+          }
+        }
+      });
+
+      frameId = requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseleave", handleMouseLeave);
+      cancelAnimationFrame(frameId);
+    };
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -33,7 +125,9 @@ export default function Register() {
 
   return (
     <div style={styles.container}>
-      <div className="glass-card">
+      <canvas id="register-particles" className="particle-canvas" />
+
+      <div className="glass-card" style={{ zIndex: 2 }}>
         <div style={styles.iconContainer}>📝</div>
         <h2 style={styles.title}>Create Account</h2>
         <p style={styles.subtitle}>Join CivicTrack to report & track issues.</p>
@@ -92,7 +186,9 @@ const styles = {
     alignItems: "center",
     background: "radial-gradient(circle at 50% 50%, #0f172a 0%, #020617 100%)",
     padding: "20px",
-    boxSizing: "border-box"
+    boxSizing: "border-box",
+    position: "relative",
+    overflow: "hidden"
   },
   iconContainer: {
     fontSize: "36px",

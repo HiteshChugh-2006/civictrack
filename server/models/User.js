@@ -8,7 +8,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ["user", "admin", "worker", "citizen"],
     default: "citizen"
-  }
+  },
+  twoFactorEnabled: { type: Boolean, default: false },
+  twoFactorSecret: { type: String },
+  resetPasswordToken: { type: String },
+  resetPasswordExpires: { type: Date }
 }, { timestamps: true });
 
 module.exports = mongoose.model("User", userSchema);

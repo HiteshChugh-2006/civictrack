@@ -34,7 +34,7 @@ router.post("/chat", async (req, res) => {
               messages: [
                 {
                   role: "system",
-                  content: "You are a helpful civic assistant for CivicTrack. Help citizens report issues (potholes, garbage, water leakage, street light failures, road damage, sewage) and understand the system status. Keep answers clear and helpful."
+                  content: "You are CivicTrack AI, a helpful, intelligent assistant. While you specialize in guiding users on reporting civic issues (potholes, garbage, water, street lights) and navigating CivicTrack, you are also a general-purpose AI (like ChatGPT) capable of answering any questions, writing code, analyzing data, or chatting about any topic the user desires. Keep your tone friendly, professional, and engaging."
                 },
                 {
                   role: "user",
