@@ -24,7 +24,7 @@ export default function Login() {
   const [resetSuccess, setResetSuccess] = useState(false);
 
   // Interactive Social OAuth Modal States
-  const [activeSocial, setActiveSocial] = useState(null); // 'google' | 'facebook' | 'twitter' | null
+  const [activeSocial, setActiveSocial] = useState(null); // 'facebook' | 'twitter' | null
   const [socialForm, setSocialForm] = useState({ name: "", email: "", password: "" });
   const [socialLoading, setSocialLoading] = useState(false);
 
@@ -174,13 +174,58 @@ export default function Login() {
     }
   };
 
-  // Trigger Social Modal Popup
+  // Real Google Sign-in Callback
+  const handleGoogleCredentialResponse = async (response) => {
+    try {
+      setLoading(true);
+      const res = await API.post("/auth/google-login", { idToken: response.credential });
+      const { token, user } = res.data;
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+      alert("Successfully signed in with Google! 🎉");
+      redirectUser(user.role);
+    } catch (err) {
+      alert(err.response?.data || "Google authentication failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Initialize official Google Sign-In SDK
+  useEffect(() => {
+    const initGoogle = () => {
+      if (window.google) {
+        window.google.accounts.id.initialize({
+          client_id: "2754246588-a400n83jgh1j4c86gq9a1b945d8b8jgh.apps.googleusercontent.com", // The Client ID
+          callback: handleGoogleCredentialResponse,
+        });
+
+        const btnElement = document.getElementById("google-signin-btn");
+        if (btnElement) {
+          window.google.accounts.id.renderButton(btnElement, {
+            theme: "outline",
+            size: "large",
+            width: "320",
+            text: "signin_with",
+            shape: "rectangular"
+          });
+        }
+      }
+    };
+
+    // Delay slightly to ensure GIS script is loaded in head
+    const timer = setTimeout(initGoogle, 800);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showForgot, require2FA]);
+
+  // Trigger Secondary Social Modal Popup
   const handleOpenSocialModal = (provider) => {
     setActiveSocial(provider);
     setSocialForm({ name: "", email: "", password: "" });
   };
 
-  // Submit Social Credentials (capturing custom typed Gmail/FB/Twitter info)
+  // Submit Simulated Social Credentials (capturing custom typed FB/Twitter info)
   const submitSocialLogin = async (e) => {
     e.preventDefault();
     if (!socialForm.email || !socialForm.name) {
@@ -358,6 +403,17 @@ export default function Login() {
                 <h2 style={styles.title}>CivicTrack Login</h2>
                 <p style={styles.subtitle}>Welcome back! Access your dashboard.</p>
 
+                {/* REAL OFFICIAL GOOGLE SIGN-IN BUTTON CONTAINER */}
+                <div style={styles.googleBtnContainer}>
+                  <div id="google-signin-btn"></div>
+                </div>
+
+                <div style={styles.socialDivider}>
+                  <span style={styles.dividerLine}></span>
+                  <span style={styles.dividerText}>or sign in with email</span>
+                  <span style={styles.dividerLine}></span>
+                </div>
+
                 <form onSubmit={handleSubmit}>
                   <input
                     type="email"
@@ -396,17 +452,14 @@ export default function Login() {
                   </button>
                 </form>
 
-                {/* SOCIAL AUTH BUTTONS */}
+                {/* SECONDARY SOCIAL AUTH BUTTONS */}
                 <div style={styles.socialDivider}>
                   <span style={styles.dividerLine}></span>
-                  <span style={styles.dividerText}>or sign in with</span>
+                  <span style={styles.dividerText}>or other platforms</span>
                   <span style={styles.dividerLine}></span>
                 </div>
 
                 <div style={styles.socialGrid}>
-                  <button onClick={() => handleOpenSocialModal("google")} style={styles.socialBtn}>
-                    Google
-                  </button>
                   <button onClick={() => handleOpenSocialModal("facebook")} style={styles.socialBtn}>
                     Facebook
                   </button>
@@ -436,7 +489,6 @@ export default function Login() {
                 <span style={{ ...styles.dot, backgroundColor: "#22c55e" }}></span>
               </div>
               <div style={styles.browserAddressBar}>
-                {activeSocial === "google" && "🔒 accounts.google.com/o/oauth2/v2/auth?client_id=civictrack&response_type=code"}
                 {activeSocial === "facebook" && "🔒 facebook.com/v12.0/dialog/oauth?client_id=civictrack&redirect_uri=..."}
                 {activeSocial === "twitter" && "🔒 api.twitter.com/oauth/authenticate?oauth_token=civictrack_token"}
               </div>
@@ -446,57 +498,9 @@ export default function Login() {
             {/* Provider Form Content Area */}
             <div style={{
               ...styles.oauthContent,
-              backgroundColor: activeSocial === "google" ? "#ffffff" : activeSocial === "facebook" ? "#ffffff" : "#000000",
-              color: activeSocial === "google" ? "#1f1f1f" : activeSocial === "facebook" ? "#1c1e21" : "#e7e9ea"
+              backgroundColor: "#ffffff",
+              color: "#1c1e21"
             }}>
-              {activeSocial === "google" && (
-                <div style={styles.googleContainer}>
-                  <div style={styles.googleLogo}>
-                    <span style={{ color: "#4285F4" }}>G</span>
-                    <span style={{ color: "#EA4335" }}>o</span>
-                    <span style={{ color: "#FBBC05" }}>o</span>
-                    <span style={{ color: "#4285F4" }}>g</span>
-                    <span style={{ color: "#34A853" }}>l</span>
-                    <span style={{ color: "#EA4335" }}>e</span>
-                  </div>
-                  <h3 style={styles.googleTitle}>Sign in</h3>
-                  <p style={styles.googleSub}>to continue to <b>CivicTrack</b></p>
-
-                  <form onSubmit={submitSocialLogin}>
-                    <input
-                      placeholder="Full Name"
-                      value={socialForm.name}
-                      style={styles.googleInput}
-                      onChange={(e) => setSocialForm({ ...socialForm, name: e.target.value })}
-                      required
-                    />
-                    <input
-                      type="email"
-                      placeholder="Email Address (e.g. gmail)"
-                      value={socialForm.email}
-                      style={styles.googleInput}
-                      onChange={(e) => setSocialForm({ ...socialForm, email: e.target.value })}
-                      required
-                    />
-                    <input
-                      type="password"
-                      placeholder="Password"
-                      style={styles.googleInput}
-                      value={socialForm.password}
-                      onChange={(e) => setSocialForm({ ...socialForm, password: e.target.value })}
-                      required
-                    />
-                    
-                    <div style={styles.googleFooter}>
-                      <span style={styles.googleCreateLink}>Create account</span>
-                      <button type="submit" style={styles.googleBtn} disabled={socialLoading}>
-                        {socialLoading ? "Signing in..." : "Next"}
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              )}
-
               {activeSocial === "facebook" && (
                 <div style={styles.fbContainer}>
                   <div style={styles.fbLogo}>facebook</div>
@@ -538,7 +542,7 @@ export default function Login() {
               )}
 
               {activeSocial === "twitter" && (
-                <div style={styles.xContainer}>
+                <div style={{ ...styles.xContainer, backgroundColor: "#000000", height: "100%", width: "100%", padding: "30px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
                   <div style={styles.xLogo}>𝕏</div>
                   <h3 style={styles.xTitle}>Sign in to Twitter</h3>
                   
@@ -628,7 +632,7 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    margin: "20px 0 15px 0",
+    margin: "15px 0 10px 0",
     gap: "10px"
   },
   dividerLine: {
@@ -643,9 +647,11 @@ const styles = {
   },
   socialGrid: {
     display: "grid",
-    gridTemplateColumns: "1fr 1fr 1fr",
+    gridTemplateColumns: "1fr 1fr",
     gap: "10px",
-    marginBottom: "15px"
+    marginBottom: "15px",
+    maxWidth: "320px",
+    margin: "0 auto"
   },
   socialBtn: {
     background: "rgba(255, 255, 255, 0.04)",
@@ -676,6 +682,12 @@ const styles = {
     color: "#4ade80",
     textAlign: "center",
     marginBottom: "15px"
+  },
+  googleBtnContainer: {
+    display: "flex",
+    justifyContent: "center",
+    margin: "15px 0 10px 0",
+    width: "100%"
   },
 
   // Mock Browser OAuth Styling
@@ -748,75 +760,13 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    padding: "30px",
     boxSizing: "border-box"
-  },
-
-  // Google OAuth Modal Content
-  googleContainer: {
-    width: "100%",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    fontFamily: "Roboto, sans-serif"
-  },
-  googleLogo: {
-    fontSize: "24px",
-    fontWeight: "600",
-    marginBottom: "15px",
-    letterSpacing: "-0.5px"
-  },
-  googleTitle: {
-    fontSize: "22px",
-    margin: "0 0 5px 0",
-    fontWeight: "400",
-    color: "#202124"
-  },
-  googleSub: {
-    fontSize: "14px",
-    margin: "0 0 30px 0",
-    color: "#5f6368"
-  },
-  googleInput: {
-    width: "100%",
-    padding: "14px",
-    margin: "8px 0",
-    borderRadius: "4px",
-    border: "1px solid #dadce0",
-    background: "white",
-    color: "#202124",
-    fontSize: "15px",
-    boxSizing: "border-box",
-    outline: "none"
-  },
-  googleFooter: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    width: "100%",
-    marginTop: "25px"
-  },
-  googleCreateLink: {
-    color: "#1a73e8",
-    fontSize: "14px",
-    fontWeight: "500",
-    cursor: "pointer"
-  },
-  googleBtn: {
-    background: "#1a73e8",
-    color: "white",
-    border: "none",
-    borderRadius: "4px",
-    padding: "10px 24px",
-    fontSize: "14px",
-    fontWeight: "500",
-    cursor: "pointer",
-    transition: "background 0.2s"
   },
 
   // Facebook OAuth Modal Content
   fbContainer: {
     width: "100%",
+    padding: "30px",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",

@@ -165,6 +165,47 @@ export default function Register() {
     }
   };
 
+  // Real Google Sign-in Callback
+  const handleGoogleCredentialResponse = async (response) => {
+    try {
+      const res = await API.post("/auth/google-login", { idToken: response.credential });
+      const { token, user } = res.data;
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+      alert("Successfully registered & logged in with Google! 🎉");
+      navigate("/dashboard");
+    } catch (err) {
+      alert(err.response?.data || "Google authentication failed.");
+    }
+  };
+
+  // Initialize official Google Sign-In SDK
+  useEffect(() => {
+    const initGoogle = () => {
+      if (window.google) {
+        window.google.accounts.id.initialize({
+          client_id: "2754246588-a400n83jgh1j4c86gq9a1b945d8b8jgh.apps.googleusercontent.com",
+          callback: handleGoogleCredentialResponse,
+        });
+
+        const btnElement = document.getElementById("google-signin-btn");
+        if (btnElement) {
+          window.google.accounts.id.renderButton(btnElement, {
+            theme: "outline",
+            size: "large",
+            width: "320",
+            text: "signup_with",
+            shape: "rectangular"
+          });
+        }
+      }
+    };
+
+    const timer = setTimeout(initGoogle, 800);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showOTP]);
+
   return (
     <div style={styles.container}>
       <canvas id="register-particles" className="particle-canvas" />
@@ -204,6 +245,17 @@ export default function Register() {
             <div style={styles.iconContainer}>📝</div>
             <h2 style={styles.title}>Create Account</h2>
             <p style={styles.subtitle}>Join CivicTrack to report & track issues.</p>
+
+            {/* REAL OFFICIAL GOOGLE SIGN-IN BUTTON CONTAINER */}
+            <div style={styles.googleBtnContainer}>
+              <div id="google-signin-btn"></div>
+            </div>
+
+            <div style={styles.socialDivider}>
+              <span style={styles.dividerLine}></span>
+              <span style={styles.dividerText}>or register with email</span>
+              <span style={styles.dividerLine}></span>
+            </div>
 
             <form onSubmit={handleSubmit}>
               <input
@@ -280,5 +332,28 @@ const styles = {
     color: "#64748b",
     fontSize: "14px",
     margin: "0 0 24px 0"
+  },
+  googleBtnContainer: {
+    display: "flex",
+    justifyContent: "center",
+    margin: "15px 0 10px 0",
+    width: "100%"
+  },
+  socialDivider: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    margin: "15px 0 10px 0",
+    gap: "10px"
+  },
+  dividerLine: {
+    flex: 1,
+    height: "1px",
+    background: "rgba(255, 255, 255, 0.08)"
+  },
+  dividerText: {
+    fontSize: "11px",
+    color: "#475569",
+    textTransform: "uppercase"
   }
 };

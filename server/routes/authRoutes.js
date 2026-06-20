@@ -1,4 +1,5 @@
 const express = require("express");
+const axios = require("axios");
 const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -371,6 +372,59 @@ router.post("/social-login", async (req, res) => {
 
   } catch (err) {
     res.status(500).json(err.message);
+  }
+});
+
+// ================= REAL GOOGLE OAUTH LOGIN / SIGNUP =================
+router.post("/google-login", async (req, res) => {
+  try {
+    const { idToken } = req.body;
+
+    if (!idToken) {
+      return res.status(400).json("ID Token is required");
+    }
+
+    // Verify token with Google's tokeninfo API
+    const response = await axios.get(`https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`);
+    const payload = response.data;
+
+    if (!payload.email) {
+      return res.status(400).json("Invalid Google Token payload");
+    }
+
+    const { email, name } = payload;
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      // Auto-provision a new citizen user for Google Sign-In
+      const randomPassword = crypto.randomBytes(16).toString("hex");
+      const hashed = await bcrypt.hash(randomPassword, 10);
+
+      user = await User.create({
+        name: name || "Google User",
+        email,
+        password: hashed,
+        role: "citizen"
+      });
+      console.log(`[GOOGLE OAUTH SIGNUP] Registered account for ${email}`);
+    } else {
+      console.log(`[GOOGLE OAUTH LOGIN] Authenticated user ${email}`);
+    }
+
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    res.json({
+      token,
+      user
+    });
+
+  } catch (err) {
+    console.error("Google Auth Token Error:", err.message);
+    res.status(400).json("Google authentication failed. Invalid token.");
   }
 });
 
