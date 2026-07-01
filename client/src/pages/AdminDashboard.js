@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import API from "../api"; // ✅ FIXED
 
 export default function AdminDashboard() {
-  const BASE_URL = process.env.REACT_APP_API_URL || "";
+  const BASE_URL = process.env.REACT_APP_API_URL || (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" ? "http://localhost:5000" : "");
   const [issues, setIssues] = useState([]);
   const [workers, setWorkers] = useState([]);
   const [filter, setFilter] = useState("all");

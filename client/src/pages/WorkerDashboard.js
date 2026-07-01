@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import api from "../api";
 
 export default function WorkerDashboard() {
-  const BASE_URL = process.env.REACT_APP_API_URL || "";
+  const BASE_URL = process.env.REACT_APP_API_URL || (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" ? "http://localhost:5000" : "");
   const [isOpen, setIsOpen] = useState(true);
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);

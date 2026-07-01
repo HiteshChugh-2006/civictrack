@@ -25,7 +25,7 @@ const icons = {
 };
 
 export default function MapView() {
-  const BASE_URL = process.env.REACT_APP_API_URL || "";
+  const BASE_URL = process.env.REACT_APP_API_URL || (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" ? "http://localhost:5000" : "");
   const [issues, setIssues] = useState([]);
   const [filter, setFilter] = useState("all");
   const [isOpen, setIsOpen] = useState(true);

@@ -5,7 +5,7 @@ import Navbar from "../components/Navbar";
 import Chatbot from "../components/Chatbot";
 
 export default function Issues() {
-  const BASE_URL = process.env.REACT_APP_API_URL || "";
+  const BASE_URL = process.env.REACT_APP_API_URL || (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" ? "http://localhost:5000" : "");
   const [issues, setIssues] = useState([]);
   const [activeTab, setActiveTab] = useState("my"); // "my" or "city"
   const [loading, setLoading] = useState(true);
