@@ -1,41 +1,82 @@
 <div align="center">
 
-# 🚀 CivicTrack — Smart Civic Issue Reporting & Management System
+# 🌐 CivicTrack — Smart City Issue Management Platform
 
 [![React](https://img.shields.io/badge/React-19-blue.svg?style=flat-square&logo=react)](https://react.dev/)
 [![Node.js](https://img.shields.io/badge/Node.js-Express-green.svg?style=flat-square&logo=nodedotjs)](https://nodejs.org/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-darkgreen.svg?style=flat-square&logo=mongodb)](https://www.mongodb.com/)
-[![OpenRouter AI](https://img.shields.io/badge/AI-Gemma--2--9B-purple.svg?style=flat-square&logo=google)](https://openrouter.ai/)
+[![Google Auth](https://img.shields.io/badge/Google-Sign--In-red.svg?style=flat-square&logo=google)](https://developers.google.com/identity)
 [![Leaflet](https://img.shields.io/badge/Leaflet-Mapping-orange.svg?style=flat-square&logo=leaflet)](https://leafletjs.com/)
 [![Live Demo](https://img.shields.io/badge/Demo-Render-brightgreen.svg?style=flat-square&logo=render)](https://civictrack-xis4.onrender.com)
 
-> A premium fullstack web application designed for civic issue reporting, automated mapping, role-based workflows (User, Admin, Worker), and AI-assisted civic support.
+> A **premium, full-stack smart city platform** featuring a 3D particle background, real Google Sign-In, AI-powered CCTV surveillance simulation, video evidence uploads, and instant demo access for Admin & Worker dashboards.
+
+**[🚀 Live Demo →](https://civictrack-xis4.onrender.com)**
 
 </div>
 
 ---
 
-## 🌟 Key Features
+## ✨ What's New (Latest Update)
 
-*   **📍 Interactive Leaflet Maps**: Real-time geolocation targeting and issue plotting with status-based marker coloring.
-*   **👥 Role-Based Workspaces**:
-    *   **User Dashboard**: Report local issues, track contributions, and check resolution updates.
-    *   **Admin Dashboard**: Manage, search, filter, assign issues, and publish announcements.
-    *   **Worker Dashboard**: View assigned tasks, start work, upload resolution images, and document remarks.
-*   **🔒 Enterprise Security**:
-    *   **Google 2FA OTP**: Configure Google Authenticator TOTP from your profile to enforce double-factor security upon sign-in.
-    *   **Social Sign-In**: Register or authenticate instantly with Google, Facebook, and Twitter credentials.
-    *   **Forgot Password Recovery**: Request self-service token-based password resetting with automated console token logging.
-*   **🏆 Gamification & Engagement**:
-    *   **Achievements Badges**: Citizens and Workers unlock medals (Civic Starter, Swift Resolver, Civic Hero) based on activities and resolutions.
-    *   **Leaderboard Feed**: Standings tables ranking top citizens (by reports & upvotes) and top workers (by resolutions).
-*   **📢 Bulletins & Alerts**:
-    *   **City News Alerts**: Admin-created bulletins displayed in color-coded cards (alerts, updates, updates) on user dashboards.
-    *   **City Health score**: Live calculated resolution ratio showing overall city status.
-    *   **Notification Bell Drawer**: Dropdown bell alerts in the Navbar detailing issue updates.
-*   **📥 CSV Exporter (Admin)**: Dynamic generation and downloading of all city issues in spreadsheet CSV format.
-*   **🤖 AI ChatGPT-Style Assistant**: Floating chatbot with sequential OpenRouter free model fallbacks (Gemma, Llama, Mistral) capable of answering both platform-specific and general knowledge questions.
-*   **✨ 3D Visual Constellations**: Interactive canvas particle networks on Login and Register backgrounds that float, connect, and react to cursor movements.
+| Feature | Description |
+| :--- | :--- |
+| **3D Particle Background** | Interactive WebGL-style constellation on auth pages — reacts to mouse movement |
+| **Real Google Sign-In** | Official Google Identity Services OAuth, not a placeholder |
+| **Demo Access Buttons** | One-click Admin & Worker access on Login/Register — no signup needed |
+| **Live CCTV Feed** | 6 animated camera feeds with AI bounding box anomaly detection |
+| **Video Uploads** | Citizens can attach video evidence to issue reports (up to 100MB) |
+| **3-Step Report Wizard** | Category picker, priority levels, GPS map, drag-drop photo & video |
+| **Premium Dark UI** | Full glassmorphism design system with animations, stat cards, role badges |
+
+---
+
+## 🌟 All Features
+
+### 🔐 Authentication
+- **Real Google Sign-In** via Google Identity Services SDK — one-click signup/login for citizens
+- **Demo Admin & Worker** buttons on Login and Register — explore full dashboards instantly
+- **Email + Password** registration with TOTP OTP email verification
+- **Two-Factor Authentication** (TOTP / Google Authenticator) support
+- **Forgot Password** — self-service reset link flow
+- **JWT sessions** with role-based 7-day tokens (2h for demo sessions)
+
+### 📍 Issue Reporting
+- **3-step guided wizard**: Details → Location → Evidence
+- **8 categories**: Pothole, Waterlogging, Garbage, Streetlight, Drainage, Encroachment, Noise, Other
+- **4 priority levels**: Low / Medium / High / Critical
+- **GPS auto-detect** or click-to-pin on interactive map
+- **Photo upload** with drag-and-drop preview
+- **Video upload** up to 100MB (MP4, MOV, WebM) with in-browser preview
+- **Address / landmark** field for faster field response
+
+### 📹 Live CCTV Feed (NEW)
+- 6 simulated camera feeds rendered on HTML5 Canvas
+- Moving AI detection bounding boxes with confidence scores (82–96%)
+- Anomaly types: Pothole, Waterlogging, Debris, Stray Animals, Illegal Parking, Garbage, Street Light Out
+- HUD overlay: timestamp, REC indicator, zone name, anomaly status
+- Live alerts panel with auto-refreshing events every ~6 seconds
+- "File Report →" shortcut from any alert directly to the reporting form
+
+### 👥 Role-Based Dashboards
+- **Citizen**: Report issues, track status, earn points & badges, view city map
+- **Admin**: Manage all issues, assign workers, publish announcements, export CSV, view analytics
+- **Worker**: View assignments, mark in-progress, submit completion photos/videos
+
+### 🏆 Gamification
+- Points system (tracked per user)
+- Achievement badges: Civic Starter, Swift Resolver, Civic Hero
+- Leaderboard rankings for citizens (by reports & votes) and workers (by resolutions)
+
+### 🗺️ City Map & Analytics
+- Interactive Leaflet map with status-based marker coloring
+- City Health Index — live resolved/total ratio
+- Charts: issue status breakdown, category distribution, resolution trends
+- Notification bell with live issue update alerts
+
+### 🤖 AI Chatbot
+- Floating AI assistant powered by OpenRouter (Gemma 2 9B → Llama → Mistral fallback)
+- Answers platform-specific questions and general city queries
 
 ---
 
@@ -43,33 +84,46 @@
 
 | Domain | Technology | Purpose |
 | :--- | :--- | :--- |
-| **Frontend** | React 19, React Router v7, Axios | Single Page Application framework & router |
-| **Styling** | Vanilla CSS, Glassmorphic tokens | Premium UI design & animations |
-| **Mapping** | React-Leaflet, OpenStreetMap | Geolocation picker and marker map |
-| **Charts** | Recharts | Visual status dashboards and statistics |
-| **Backend** | Node.js, Express | RESTful API server |
-| **Database** | MongoDB, Mongoose | Persistent storage for users, roles, and issues |
-| **AI Integration**| OpenAI SDK, OpenRouter AI | Gemma 2 9B model chatbot assistant |
-| **Media** | Multer | Disk storage for issue reporting and resolution photos |
+| **Frontend** | React 19, React Router v7, Axios | Single Page Application |
+| **Styling** | Vanilla CSS, CSS Variables, Glassmorphism | Premium design system |
+| **3D Background** | HTML5 Canvas (no external deps) | Interactive particle constellation |
+| **Mapping** | React-Leaflet, OpenStreetMap | Geolocation & issue plotting |
+| **Charts** | Recharts | Dashboards & analytics |
+| **Auth** | Google Identity Services SDK, JWT, TOTP | OAuth + 2FA + demo sessions |
+| **Backend** | Node.js, Express | RESTful API |
+| **Database** | MongoDB, Mongoose | Users, issues, roles |
+| **AI** | OpenAI SDK, OpenRouter | Gemma 2 9B chatbot |
+| **Media** | Multer (images + videos) | Disk storage for evidence uploads |
 
 ---
 
-## 📡 API Endpoints
+## 📡 API Reference
 
-### 🔐 Authentication (`/api/auth`)
-*   `POST /register` — Register a new account (validates email uniqueness).
-*   `POST /login` — Authenticate and retrieve JWT token.
+### 🔐 Auth (`/api/auth`)
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| POST | `/register` | Email registration with OTP verification |
+| POST | `/login` | Email + password login, returns JWT |
+| POST | `/google-login` | Real Google OAuth — verifies ID token, returns JWT |
+| POST | `/demo-login` | Instant demo access `{ role: "admin" \| "worker" }` — 2h JWT |
+| POST | `/verify-otp` | OTP verification after registration |
+| POST | `/forgot-password` | Send self-service reset link |
+| POST | `/login/2fa-verify` | Verify TOTP code for 2FA login |
 
-### 📍 Issue Management (`/api/issues`)
-*   `POST /` — Create a new issue (supports file upload and location JSON).
-*   `GET /` — Fetch issues matching the caller's role privileges.
-*   `PUT /:id` — Update issue status (Admin & Workers).
-*   `PUT /assign/:id` — Assign issue to a designated worker (Admin only).
-*   `GET /worker` — Retrieve issues assigned to the calling worker.
-*   `PUT /complete/:id` — Upload resolution image & remarks (Assigned Worker only).
+### 📍 Issues (`/api/issues`)
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| POST | `/` | Create issue — supports `image` + `video` multipart upload |
+| GET | `/` | Fetch issues by role |
+| PUT | `/:id` | Update status (Admin/Worker) |
+| PUT | `/assign/:id` | Assign issue to worker (Admin) |
+| GET | `/worker` | Issues assigned to calling worker |
+| PUT | `/complete/:id` | Submit completion with media (Worker) |
 
-### 🤖 AI Service (`/api/ai` & `/api/chat`)
-*   `POST /chat` — Stream interactions to/from the Gemma 2 AI model.
+### 🤖 AI (`/api/chat`)
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| POST | `/chat` | Chat with AI assistant (OpenRouter) |
 
 ---
 
@@ -77,88 +131,104 @@
 
 ```
 civictrack/
-├── client/                 # Frontend React Application
-│   ├── public/             # Static templates and icons
+├── client/                       # React Frontend
+│   ├── public/
+│   │   └── index.html            # Google Identity Services SDK loaded here
 │   └── src/
-│       ├── components/     # Chatbot, Navbar, Sidebar, ProtectedRoute
-│       ├── layout/         # Main layout wrapper
-│       ├── pages/          # Login, Register, Dashboards, Map, Issues
-│       ├── api.js          # Shared Axios configuration
-│       ├── index.css       # Typography, global animations, and glass styles
-│       └── App.js          # Client routing configuration
-└── server/                 # Backend Node/Express Server
-    ├── middleware/         # JWT Authenticator
-    ├── models/             # User and Issue mongoose schemas
-    ├── routes/             # Express route files
-    ├── uploads/            # Disk storage for image uploads (auto-created)
-    ├── createUsers.js      # Seed file for default accounts
-    └── server.js           # Express main server script
+│       ├── components/
+│       │   ├── ThreeBackground.js  # 3D particle constellation (NEW)
+│       │   ├── Navbar.js           # Glassmorphic navbar with notifications
+│       │   ├── Sidebar.js          # Role-aware sidebar with demo badge
+│       │   ├── Chatbot.js          # AI assistant
+│       │   └── ProtectedRoute.js   # JWT + role gate
+│       ├── pages/
+│       │   ├── Login.js            # Two-panel: Google + demo access buttons
+│       │   ├── Register.js         # Two-panel: demo preview + registration
+│       │   ├── LiveFeed.js         # CCTV AI simulation (NEW)
+│       │   ├── CreateIssue.js      # 3-step wizard with video upload
+│       │   ├── Dashboard.js        # Citizen dashboard
+│       │   ├── AdminDashboard.js   # Admin management
+│       │   ├── WorkerDashboard.js  # Worker task view
+│       │   ├── MapView.js          # City map
+│       │   ├── Issues.js           # Issue list with filters
+│       │   ├── Profile.js          # User profile + 2FA
+│       │   └── Leaderboard.js      # Rankings
+│       ├── index.css               # Full premium design system
+│       └── App.js                  # Routing (+ /livefeed route)
+└── server/
+    ├── models/
+    │   ├── User.js                 # Extended: googleId, avatar, isDemo, points
+    │   └── Issue.js                # Extended: video, category, priority, votes
+    ├── routes/
+    │   ├── authRoutes.js           # + /google-login, /demo-login endpoints
+    │   └── issueRoutes.js          # + video upload support (100MB)
+    ├── middleware/auth.js
+    ├── createUsers.js              # Seed script
+    └── server.js
 ```
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Quick Start
 
-### 📋 Prerequisites
-*   Node.js (v18+)
-*   MongoDB Instance (Local database or MongoDB Atlas cloud URI)
-*   OpenRouter API Key (Create one for free at [openrouter.ai](https://openrouter.ai/))
+### Prerequisites
+- Node.js v18+
+- MongoDB (local or Atlas)
+- OpenRouter API Key (free at [openrouter.ai](https://openrouter.ai/))
 
-### 1. Server Configuration
-Navigate to the server directory:
+### 1. Backend
 ```bash
 cd server
-```
+# Create .env:
+# PORT=5000
+# MONGO_URI=mongodb://127.0.0.1:27017/civictrack
+# JWT_SECRET=your_secret_here
+# OPENROUTER_API_KEY=your_openrouter_key
 
-Create a `.env` configuration file:
-```env
-PORT=5000
-MONGO_URI=mongodb://127.0.0.1:27017/civictrack
-JWT_SECRET=your_jwt_signing_key_here
-OPENROUTER_API_KEY=your_openrouter_api_key_here
-```
-
-Install dependencies:
-```bash
 npm install
+node createUsers.js   # seed test accounts
+npm run dev
 ```
 
-Seed the default testing database accounts:
-```bash
-node createUsers.js
-```
-
-Start the backend:
-```bash
-npm run dev   # Node.js development server
-```
-
-### 2. Client Configuration
-Open a new terminal session and navigate to the client folder:
+### 2. Frontend
 ```bash
 cd client
-```
+# Optional — for real Google Sign-In:
+# Add to .env: REACT_APP_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
 
-Install dependencies with legacy peer resolutions (React 19 support):
-```bash
 npm install --legacy-peer-deps
-```
-
-Start the frontend development server:
-```bash
 npm start
 ```
-Open [http://localhost:3000](http://localhost:3000) to view the application.
+
+Open [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## 🔑 Seed Testing Credentials
+## 🔑 Demo Access
 
-The `createUsers.js` script initializes the database with the following preconfigured testing accounts (password is `123456` for all):
+### Instant (No Account Needed)
+Click **"Try Admin Dashboard"** or **"Try Worker Dashboard"** on the Login or Register page for a 2-hour fully functional demo session.
 
-| Role | Email Address | Purpose |
-| :--- | :--- | :--- |
-| **Administrator** | `admin@gmail.com` | Full assignment and status overview dashboard |
-| **Worker 1** | `worker1@gmail.com` | Assigned tasks list & completion forms |
-| **Worker 2** | `worker2@gmail.com` | Assigned tasks list & completion forms |
-| **Regular User** | *Register in app* | Submit issue forms and view own reports |
+### Seeded Test Accounts (password: `123456`)
+| Role | Email |
+| :--- | :--- |
+| Admin | `admin@gmail.com` |
+| Worker 1 | `worker1@gmail.com` |
+| Worker 2 | `worker2@gmail.com` |
+| Citizen | Register with email or Google |
+
+### Google Sign-In Setup (optional)
+1. [console.cloud.google.com](https://console.cloud.google.com) → **Credentials → OAuth 2.0 Client IDs**
+2. Add `http://localhost:3000` to **Authorized JavaScript origins**
+3. Copy Client ID → add to `client/.env` as `REACT_APP_GOOGLE_CLIENT_ID=...`
+4. Restart `npm start`
+
+> Without the env var, clicking "Sign in with Google" prompts you to paste the Client ID — it's stored in localStorage for the session.
+
+---
+
+<div align="center">
+
+Built with ❤️ | [Live Demo](https://civictrack-xis4.onrender.com) | [GitHub](https://github.com/HiteshChugh-2006/civictrack)
+
+</div>
