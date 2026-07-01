@@ -254,7 +254,7 @@ export default function CreateIssue() {
                   </div>
 
                   <div style={styles.map}>
-                    <MapContainer center={[30.7333, 76.7794]} zoom={13} style={{ height: "100%", borderRadius: "12px" }}>
+                    <MapContainer key="civictrack-create-map" center={[30.7333, 76.7794]} zoom={13} style={{ height: "100%", borderRadius: "12px" }}>
                       <TileLayer
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         attribution='© OpenStreetMap'

@@ -107,6 +107,7 @@ export default function MapView() {
 
         <div style={styles.mapContainer}>
           <MapContainer
+            key="civictrack-main-map"
             center={[30.7333, 76.7794]}
             zoom={13}
             style={styles.map}
