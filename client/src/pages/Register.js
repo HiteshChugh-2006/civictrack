@@ -1,1140 +1,674 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import API from "../api";
 import { useNavigate } from "react-router-dom";
+import ThreeBackground from "../components/ThreeBackground";
 
 export default function Register() {
-  const [data, setData] = useState({
-    name: "",
-    email: "",
-    password: ""
-  });
-
   const navigate = useNavigate();
+  const googleBtnRef = useRef(null);
 
-  // OTP Verification States
+  const [data, setData] = useState({ name: "", email: "", password: "", confirmPassword: "" });
   const [showOTP, setShowOTP] = useState(false);
   const [otpCode, setOtpCode] = useState("");
   const [otpLoading, setOtpLoading] = useState(false);
   const [emailForOTP, setEmailForOTP] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(null);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
-  // Google Client ID states
-  const [googleClientId, setGoogleClientId] = useState(
-    localStorage.getItem("google_client_id") || "2754246588-a400n83jgh1j4c86gq9a1b945d8b8jgh.apps.googleusercontent.com"
-  );
-  const [showConfigModal, setShowConfigModal] = useState(false);
+  const googleClientId = process.env.REACT_APP_GOOGLE_CLIENT_ID || localStorage.getItem("civictrack_google_client_id") || "";
 
-  // Interactive Social OAuth Modal States
-  const [activeSocial, setActiveSocial] = useState(null); // 'google' | 'facebook' | 'twitter' | null
-  const [socialForm, setSocialForm] = useState({ name: "", email: "", password: "" });
-  const [socialLoading, setSocialLoading] = useState(false);
-  const [googleStep, setGoogleStep] = useState(1); // 1: Email, 2: Name/Password, 3: 2-Step Verification
-  const [simulatedOTP, setSimulatedOTP] = useState("");
-  const [userOTPInput, setUserOTPInput] = useState("");
-
-  // Canvas particle background effect
+  // Initialize Google Identity Services
   useEffect(() => {
-    const canvas = document.getElementById("register-particles");
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
-
-    const handleResize = () => {
-      width = (canvas.width = window.innerWidth);
-      height = (canvas.height = window.innerHeight);
-    };
-    window.addEventListener("resize", handleResize);
-
-    const particles = [];
-    const count = 55;
-
-    for (let i = 0; i < count; i++) {
-      particles.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        vx: (Math.random() - 0.5) * 0.8,
-        vy: (Math.random() - 0.5) * 0.8,
-        radius: Math.random() * 2 + 1
-      });
-    }
-
-    let mouse = { x: null, y: null };
-    const handleMouseMove = (e) => {
-      mouse.x = e.clientX;
-      mouse.y = e.clientY;
-    };
-    const handleMouseLeave = () => {
-      mouse.x = null;
-      mouse.y = null;
-    };
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseleave", handleMouseLeave);
-
-    let frameId;
-    const animate = () => {
-      ctx.clearRect(0, 0, width, height);
-      ctx.fillStyle = "rgba(59, 130, 246, 0.35)";
-      ctx.strokeStyle = "rgba(59, 130, 246, 0.08)";
-
-      particles.forEach((p, idx) => {
-        p.x += p.vx;
-        p.y += p.vy;
-
-        if (p.x < 0 || p.x > width) p.vx *= -1;
-        if (p.y < 0 || p.y > height) p.vy *= -1;
-
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fill();
-
-        for (let j = idx + 1; j < particles.length; j++) {
-          const p2 = particles[j];
-          const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
-          if (dist < 100) {
-            ctx.lineWidth = 1 - dist / 100;
-            ctx.beginPath();
-            ctx.moveTo(p.x, p.y);
-            ctx.lineTo(p2.x, p2.y);
-            ctx.stroke();
+    if (!googleClientId) return;
+    const initGoogle = () => {
+      /* global google */
+      if (typeof google !== "undefined") {
+        try {
+          google.accounts.id.initialize({
+            client_id: googleClientId,
+            callback: handleGoogleCredentialResponse,
+            auto_select: false,
+            cancel_on_tap_outside: true,
+          });
+          if (googleBtnRef.current) {
+            google.accounts.id.renderButton(googleBtnRef.current, {
+              theme: "filled_black",
+              size: "large",
+              width: "100%",
+              text: "signup_with",
+              shape: "rectangular",
+              logo_alignment: "left",
+            });
           }
+        } catch (err) {
+          console.error("Google SDK init failed:", err.message);
         }
-
-        if (mouse.x && mouse.y) {
-          const mDist = Math.hypot(p.x - mouse.x, p.y - mouse.y);
-          if (mDist < 120) {
-            const angle = Math.atan2(p.y - mouse.y, p.x - mouse.x);
-            p.x += Math.cos(angle) * 1.5;
-            p.y += Math.sin(angle) * 1.5;
-          }
-        }
-      });
-
-      frameId = requestAnimationFrame(animate);
-    };
-
-    animate();
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseleave", handleMouseLeave);
-      cancelAnimationFrame(frameId);
-    };
-  }, []);
-
-  // Submit Registration (triggers OTP code dispatch)
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!data.name || !data.email || !data.password) {
-      alert("⚠️ Fill all fields");
-      return;
-    }
-
-    try {
-      const res = await API.post("/auth/register", data);
-      
-      if (res.data.requireOTP) {
-        setEmailForOTP(res.data.email);
-        setShowOTP(true);
-        alert("✉️ Verification OTP code sent to your email! (Please check backend console logs)");
-      } else {
-        alert("Registered Successfully ✅");
-        navigate("/");
       }
+    };
+    const t = setTimeout(initGoogle, 500);
+    return () => clearTimeout(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showOTP, googleClientId]);
 
-    } catch (err) {
-      console.error(err);
-      alert(err?.response?.data || "Registration failed ❌");
-    }
-  };
-
-  // Submit OTP Code Validation
-  const handleVerifyOTP = async (e) => {
-    e.preventDefault();
-    if (otpCode.length !== 6) {
-      alert("Please enter a valid 6-digit OTP code");
-      return;
-    }
-
+  // Real Google Sign-In callback → send idToken to backend
+  const handleGoogleCredentialResponse = async (response) => {
     try {
-      setOtpLoading(true);
-      const res = await API.post("/auth/verify-otp", {
-        email: emailForOTP,
-        code: otpCode
-      });
-      
+      setGoogleLoading(true);
+      setError("");
+      const res = await API.post("/auth/google-login", { idToken: response.credential });
       const { token, user } = res.data;
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
-      
-      alert("Account Verified & Registered Successfully! 🎉");
-      navigate("/dashboard");
-
+      setSuccess("🎉 Signed up with Google successfully!");
+      setTimeout(() => redirectUser(user.role), 800);
     } catch (err) {
-      alert(err.response?.data || "Verification failed! Check code.");
+      setError(err.response?.data || "Google sign-up failed. Please try again.");
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  const redirectUser = (role) => {
+    if (role === "admin") navigate("/admin");
+    else if (role === "worker") navigate("/worker");
+    else navigate("/dashboard");
+  };
+
+  // Email/Password registration
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    if (data.password !== data.confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+    if (data.password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+    try {
+      setLoading(true);
+      const res = await API.post("/auth/register", { name: data.name, email: data.email, password: data.password });
+      if (res.data.requireOTP) {
+        setEmailForOTP(data.email);
+        setShowOTP(true);
+      }
+    } catch (err) {
+      setError(err.response?.data || "Registration failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // OTP Verification
+  const handleOTPSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    try {
+      setOtpLoading(true);
+      const res = await API.post("/auth/verify-otp", { email: emailForOTP, code: otpCode });
+      const { token, user } = res.data;
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+      setSuccess("✅ Account verified! Redirecting...");
+      setTimeout(() => redirectUser(user.role), 900);
+    } catch (err) {
+      setError(err.response?.data || "Invalid OTP. Please try again.");
     } finally {
       setOtpLoading(false);
     }
   };
 
-  // Real Google Sign-in Callback
-  const handleGoogleCredentialResponse = async (response) => {
+  // Demo login for Admin / Worker
+  const handleDemoLogin = async (role) => {
+    setError("");
     try {
-      const res = await API.post("/auth/google-login", { idToken: response.credential });
+      setDemoLoading(role);
+      const res = await API.post("/auth/demo-login", { role });
       const { token, user } = res.data;
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
-      alert("Successfully registered & logged in with Google! 🎉");
-      navigate("/dashboard");
+      setSuccess(`🎭 Demo ${role} access granted!`);
+      setTimeout(() => redirectUser(user.role), 800);
     } catch (err) {
-      alert(err.response?.data || "Google authentication failed.");
-    }
-  };
-
-  // Trigger Secondary Social Modal Popup
-  const handleOpenSocialModal = (provider) => {
-    setActiveSocial(provider);
-    setSocialForm({ name: "", email: "", password: "" });
-  };
-
-  // Submit Simulated Social Credentials
-  const submitSocialLogin = async (e) => {
-    e.preventDefault();
-    if (!socialForm.email || !socialForm.name) {
-      alert("Please provide both full name and account email/ID.");
-      return;
-    }
-
-    try {
-      setSocialLoading(true);
-      const res = await API.post("/auth/social-login", {
-        email: socialForm.email,
-        name: socialForm.name,
-        provider: activeSocial
-      });
-      const { token, user } = res.data;
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
-      
-      setActiveSocial(null);
-      alert(`Successfully registered & signed in with ${activeSocial[0].toUpperCase() + activeSocial.slice(1)} account! 🎉`);
-      navigate("/dashboard");
-    } catch (err) {
-      alert(`Social registration with ${activeSocial} failed.`);
+      setError(err.response?.data || `Demo ${role} login failed.`);
     } finally {
-      setSocialLoading(false);
+      setDemoLoading(null);
     }
   };
 
-  // Initialize official Google Sign-In SDK
-  useEffect(() => {
-    if (googleClientId && googleClientId !== "2754246588-a400n83jgh1j4c86gq9a1b945d8b8jgh.apps.googleusercontent.com") {
-      const initGoogle = () => {
-        /* global google */
-        if (typeof google !== "undefined") {
-          try {
-            google.accounts.id.initialize({
-              client_id: googleClientId,
-              callback: handleGoogleCredentialResponse,
-            });
+  const passwordStrength = (pw) => {
+    if (!pw) return { level: 0, label: "", color: "#475569" };
+    let score = 0;
+    if (pw.length >= 8) score++;
+    if (/[A-Z]/.test(pw)) score++;
+    if (/[0-9]/.test(pw)) score++;
+    if (/[^A-Za-z0-9]/.test(pw)) score++;
+    const levels = [
+      { level: 0, label: "", color: "#475569" },
+      { level: 1, label: "Weak", color: "#ef4444" },
+      { level: 2, label: "Fair", color: "#f59e0b" },
+      { level: 3, label: "Good", color: "#3b82f6" },
+      { level: 4, label: "Strong", color: "#10b981" },
+    ];
+    return levels[score] || levels[0];
+  };
 
-            const btnElement = document.getElementById("google-signin-btn");
-            if (btnElement) {
-              google.accounts.id.renderButton(btnElement, {
-                theme: "outline",
-                size: "large",
-                width: "320",
-                text: "signup_with",
-                shape: "rectangular"
-              });
-            }
-          } catch (err) {
-            console.error("Google SDK Initialization failed:", err.message);
-          }
-        }
-      };
-
-      const timer = setTimeout(initGoogle, 800);
-      return () => clearTimeout(timer);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showOTP, googleClientId]);
+  const pwStrength = passwordStrength(data.password);
 
   return (
-    <div style={styles.container}>
-      <canvas id="register-particles" className="particle-canvas" />
+    <div style={styles.page}>
+      <ThreeBackground opacity={0.6} />
 
-      <div className="glass-card" style={{ zIndex: 2 }}>
-        {showOTP ? (
-          /* OTP VERIFICATION VIEW */
-          <form onSubmit={handleVerifyOTP}>
-            <div style={styles.iconContainer}>✉️</div>
-            <h2 style={styles.title}>Email OTP Verification</h2>
-            <p style={styles.subtitle}>Enter the 6-digit verification code sent to <b>{emailForOTP}</b>.</p>
+      <div style={styles.container}>
 
-            <input
-              placeholder="e.g. 123456"
-              value={otpCode}
-              className="glass-input"
-              style={{ textAlign: "center", fontSize: "18px", letterSpacing: "5px" }}
-              maxLength={6}
-              onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
-              required
-            />
+        {/* ===== LEFT PANEL (Demo Access) ===== */}
+        <div style={styles.leftPanel}>
+          <div style={styles.leftContent}>
+            <div style={styles.leftLogo}>🌐</div>
+            <h1 style={styles.leftTitle}>CivicTrack</h1>
+            <p style={styles.leftSub}>Smart city issue management platform</p>
 
-            <button type="submit" className="premium-btn" disabled={otpLoading}>
-              {otpLoading ? "Verifying..." : "Verify & Activate"}
-            </button>
-
-            <p className="premium-link" onClick={() => {
-              setShowOTP(false);
-              setOtpCode("");
-            }}>
-              Back to Register
-            </p>
-          </form>
-        ) : (
-          /* STANDARD REGISTRATION VIEW */
-          <div>
-            <div style={styles.iconContainer}>📝</div>
-            <h2 style={styles.title}>Create Account</h2>
-            <p style={styles.subtitle}>Join CivicTrack to report & track issues.</p>
-
-            {/* GOOGLE SIGN-IN BUTTON CONTAINER */}
-            <div style={styles.googleBtnContainer}>
-              {googleClientId === "2754246588-a400n83jgh1j4c86gq9a1b945d8b8jgh.apps.googleusercontent.com" ? (
-                <button 
-                  type="button"
-                  onClick={() => {
-                    setGoogleStep(1);
-                    setSimulatedOTP("");
-                    setUserOTPInput("");
-                    handleOpenSocialModal("google");
-                  }} 
-                  style={styles.mockGoogleBtn}
-                >
-                  <img 
-                    src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" 
-                    alt="Google logo" 
-                    style={styles.mockGoogleIcon} 
-                  />
-                  <span>Sign up with Google</span>
-                </button>
-              ) : (
-                <div id="google-signin-btn"></div>
-              )}
-            </div>
-
-            {/* DYNAMIC CONFIGURATION HELPER FOR GOOGLE OAUTH */}
-            <div style={{ textAlign: "center", marginBottom: "15px" }}>
-              <span 
-                onClick={() => setShowConfigModal(true)} 
-                style={{ fontSize: "11px", color: "#60a5fa", cursor: "pointer", textDecoration: "underline" }}
-              >
-                ⚙️ Configure Google Client ID / Launch Simulator
-              </span>
-            </div>
-
-            <div style={styles.socialDivider}>
-              <span style={styles.dividerLine}></span>
-              <span style={styles.dividerText}>or register with email</span>
-              <span style={styles.dividerLine}></span>
-            </div>
-
-            <form onSubmit={handleSubmit}>
-              <input
-                placeholder="Full Name"
-                value={data.name}
-                className="glass-input"
-                onChange={(e) =>
-                  setData({ ...data, name: e.target.value })
-                }
-                required
-              />
-
-              <input
-                type="email"
-                placeholder="Email Address"
-                value={data.email}
-                className="glass-input"
-                onChange={(e) =>
-                  setData({ ...data, email: e.target.value })
-                }
-                required
-              />
-
-              <input
-                type="password"
-                placeholder="Password"
-                value={data.password}
-                className="glass-input"
-                onChange={(e) =>
-                  setData({ ...data, password: e.target.value })
-                }
-                required
-              />
-
-              <button type="submit" className="premium-btn">
-                Register
-              </button>
-            </form>
-
-            {/* SECONDARY SOCIAL AUTH BUTTONS */}
-            <div style={styles.socialDivider}>
-              <span style={styles.dividerLine}></span>
-              <span style={styles.dividerText}>or other platforms</span>
-              <span style={styles.dividerLine}></span>
-            </div>
-
-            <div style={styles.socialGrid}>
-              <button type="button" onClick={() => handleOpenSocialModal("facebook")} style={styles.socialBtn}>
-                Facebook
-              </button>
-              <button type="button" onClick={() => handleOpenSocialModal("twitter")} style={styles.socialBtn}>
-                Twitter
-              </button>
-            </div>
-
-            <p onClick={() => navigate("/")} className="premium-link">
-              Already have an account? Login
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* GOOGLE CLIENT ID CONFIGURATION MODAL */}
-      {showConfigModal && (
-        <div style={styles.socialOverlay}>
-          <div style={{ ...styles.oauthWindow, height: "420px", backgroundColor: "#0b0f19", border: "1px solid rgba(255, 255, 255, 0.15)" }}>
-            <div style={styles.browserHeader}>
-              <div style={styles.browserDots}>
-                <span style={{ ...styles.dot, backgroundColor: "#ef4444" }}></span>
-                <span style={{ ...styles.dot, backgroundColor: "#eab308" }}></span>
-                <span style={{ ...styles.dot, backgroundColor: "#22c55e" }}></span>
-              </div>
-              <div style={styles.browserAddressBar}>🔒 civictrack.config/google-oauth</div>
-              <button style={styles.browserClose} onClick={() => setShowConfigModal(false)}>×</button>
-            </div>
-            
-            <div style={{ ...styles.oauthContent, padding: "25px", color: "#f8fafc", width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
-              <h3 style={{ margin: "0 0 10px 0", color: "#ffffff", fontWeight: "600", fontSize: "18px", textAlign: "center" }}>⚙️ Google OAuth Settings</h3>
-              <p style={{ fontSize: "12px", color: "#94a3b8", lineHeight: "1.4", margin: "0 0 20px 0", textAlign: "center" }}>
-                Real Google Sign-In requires a client ID registered for your local origin (e.g. <code>{window.location.origin}</code>).
+            <div style={styles.demoSection}>
+              <p style={styles.demoHeading}>
+                <span style={styles.demoPill}>👀 PREVIEW</span>
+                Explore without signing up
+              </p>
+              <p style={styles.demoDesc}>
+                Try the Admin or Worker dashboards instantly — no registration needed.
               </p>
 
-              <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: "12px" }}>
-                <div>
-                  <label style={{ fontSize: "11px", color: "#64748b", display: "block", marginBottom: "4px" }}>Google Client ID:</label>
-                  <input
-                    value={googleClientId}
-                    className="glass-input"
-                    style={{ margin: 0, fontSize: "12px", padding: "10px" }}
-                    placeholder="Enter Google Client ID"
-                    onChange={(e) => setGoogleClientId(e.target.value)}
-                  />
-                </div>
-
-                <div style={{ display: "flex", gap: "10px", marginTop: "15px" }}>
-                  <button 
-                    type="button"
-                    onClick={() => {
-                      localStorage.setItem("google_client_id", googleClientId);
-                      setShowConfigModal(false);
-                      alert("Google OAuth Client ID Saved! Re-initializing...");
-                    }} 
-                    style={{ ...styles.socialBtn, flex: 1, backgroundColor: "#2563eb", color: "#ffffff" }}
-                  >
-                    Save & Initialize
-                  </button>
-                  <button 
-                    type="button"
-                    onClick={() => {
-                      setShowConfigModal(false);
-                      setGoogleStep(1);
-                      setSimulatedOTP("");
-                      setUserOTPInput("");
-                      handleOpenSocialModal("google");
-                    }} 
-                    style={{ ...styles.socialBtn, flex: 1, backgroundColor: "rgba(255, 255, 255, 0.08)", color: "#ffffff" }}
-                  >
-                    Launch Simulator
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* INTERACTIVE SOCIAL OAUTH POPUP WINDOW OVERLAY */}
-      {activeSocial && (
-        <div style={styles.socialOverlay}>
-          <div style={styles.oauthWindow}>
-            {/* Mock browser titlebar chrome */}
-            <div style={styles.browserHeader}>
-              <div style={styles.browserDots}>
-                <span style={{ ...styles.dot, backgroundColor: "#ef4444" }}></span>
-                <span style={{ ...styles.dot, backgroundColor: "#eab308" }}></span>
-                <span style={{ ...styles.dot, backgroundColor: "#22c55e" }}></span>
-              </div>
-              <div style={styles.browserAddressBar}>
-                {activeSocial === "google" && "🔒 accounts.google.com/o/oauth2/v2/auth?client_id=civictrack&response_type=code"}
-                {activeSocial === "facebook" && "🔒 facebook.com/v12.0/dialog/oauth?client_id=civictrack&redirect_uri=..."}
-                {activeSocial === "twitter" && "🔒 api.twitter.com/oauth/authenticate?oauth_token=civictrack_token"}
-              </div>
-              <button style={styles.browserClose} onClick={() => setActiveSocial(null)}>×</button>
-            </div>
-
-            {/* Provider Form Content Area */}
-            <div style={{
-              ...styles.oauthContent,
-              backgroundColor: activeSocial === "google" ? "#ffffff" : "#ffffff",
-              color: "#1c1e21"
-            }}>
-              {activeSocial === "google" && (
-                <div style={styles.googleContainer}>
-                  {/* Google Logo */}
-                  <div style={styles.googleLogo}>
-                    <span style={{ color: "#4285F4" }}>G</span>
-                    <span style={{ color: "#EA4335" }}>o</span>
-                    <span style={{ color: "#FBBC05" }}>o</span>
-                    <span style={{ color: "#4285F4" }}>g</span>
-                    <span style={{ color: "#34A853" }}>l</span>
-                    <span style={{ color: "#EA4335" }}>e</span>
-                  </div>
-
-                  {googleStep === 1 && (
-                    <form 
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        if (!socialForm.email) {
-                          alert("Please enter your email address.");
-                          return;
-                        }
-                        setGoogleStep(2);
-                      }}
-                      style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}
-                    >
-                      <h3 style={styles.googleTitle}>Sign in</h3>
-                      <p style={styles.googleSub}>to continue to <b>CivicTrack</b></p>
-
-                      <input
-                        type="email"
-                        placeholder="Email or phone"
-                        value={socialForm.email}
-                        style={styles.googleInput}
-                        onChange={(e) => setSocialForm({ ...socialForm, email: e.target.value })}
-                        required
-                        autoFocus
-                      />
-                      
-                      <div style={{ width: "100%", textAlign: "left", margin: "10px 0" }}>
-                        <span style={styles.googleCreateLink}>Forgot email?</span>
-                      </div>
-
-                      <p style={{ fontSize: "12px", color: "#5f6368", margin: "20px 0 10px 0", textAlign: "left", width: "100%", lineHeight: "1.4" }}>
-                        Not your computer? Use Guest mode to sign in privately.
-                        <span style={{ color: "#1a73e8", cursor: "pointer", marginLeft: "4px" }}>Learn more</span>
-                      </p>
-
-                      <div style={styles.googleFooter}>
-                        <span style={styles.googleCreateLink} onClick={() => setGoogleStep(2)}>Create account</span>
-                        <button type="submit" style={styles.googleBtn}>
-                          Next
-                        </button>
-                      </div>
-                    </form>
-                  )}
-
-                  {googleStep === 2 && (
-                    <form 
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        if (!socialForm.name) {
-                          alert("Please enter your full name.");
-                          return;
-                        }
-                        if (!socialForm.password) {
-                          alert("Please enter your password.");
-                          return;
-                        }
-                        const code = Math.floor(100000 + Math.random() * 900000).toString();
-                        setSimulatedOTP(code);
-                        setGoogleStep(3);
-                      }}
-                      style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}
-                    >
-                      <h3 style={styles.googleTitle}>Welcome</h3>
-                      
-                      <div style={styles.googleUserPill}>
-                        <span style={styles.googleUserIcon}>👤</span>
-                        <span style={styles.googleUserEmail}>{socialForm.email}</span>
-                      </div>
-
-                      <input
-                        type="text"
-                        placeholder="Full Name"
-                        value={socialForm.name}
-                        style={styles.googleInput}
-                        onChange={(e) => setSocialForm({ ...socialForm, name: e.target.value })}
-                        required
-                        autoFocus
-                      />
-
-                      <input
-                        type="password"
-                        placeholder="Enter your password"
-                        value={socialForm.password || ""}
-                        style={styles.googleInput}
-                        onChange={(e) => setSocialForm({ ...socialForm, password: e.target.value })}
-                        required
-                      />
-
-                      <div style={{ width: "100%", textAlign: "left", margin: "10px 0" }}>
-                        <span style={styles.googleCreateLink}>Forgot password?</span>
-                      </div>
-
-                      <div style={styles.googleFooter}>
-                        <span 
-                          style={styles.googleCreateLink} 
-                          onClick={() => setGoogleStep(1)}
-                        >
-                          Back
-                        </span>
-                        <button type="submit" style={styles.googleBtn}>
-                          Next
-                        </button>
-                      </div>
-                    </form>
-                  )}
-
-                  {googleStep === 3 && (
-                    <form 
-                      onSubmit={async (e) => {
-                        e.preventDefault();
-                        if (userOTPInput !== simulatedOTP) {
-                          alert("❌ Invalid verification code. Please check the simulation code.");
-                          return;
-                        }
-                        await submitSocialLogin(e);
-                      }}
-                      style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}
-                    >
-                      <h3 style={styles.googleTitle}>2-Step Verification</h3>
-                      
-                      <div style={styles.googleUserPill}>
-                        <span style={styles.googleUserIcon}>👤</span>
-                        <span style={styles.googleUserEmail}>{socialForm.email}</span>
-                      </div>
-
-                      <p style={{ fontSize: "14px", color: "#3c4043", margin: "15px 0", textAlign: "center", lineHeight: "1.5" }}>
-                        A verification code was sent to your backup device. Enter the 6-digit code below to finish signing in.
-                      </p>
-
-                      <input
-                        placeholder="Enter 6-digit code"
-                        value={userOTPInput}
-                        maxLength={6}
-                        style={{ ...styles.googleInput, textAlign: "center", fontSize: "18px", letterSpacing: "4px" }}
-                        onChange={(e) => setUserOTPInput(e.target.value.replace(/\D/g, ""))}
-                        required
-                        autoFocus
-                      />
-
-                      <div style={styles.simulationNotification}>
-                        <span style={{ fontSize: "12px", color: "#1e3a8a", fontWeight: "600" }}>🔑 Simulation Code:</span>
-                        <span style={{ fontSize: "15px", color: "#1d4ed8", fontWeight: "700", letterSpacing: "1px", marginLeft: "8px" }}>
-                          {simulatedOTP}
-                        </span>
-                      </div>
-
-                      <div style={styles.googleFooter}>
-                        <span 
-                          style={styles.googleCreateLink} 
-                          onClick={() => setGoogleStep(2)}
-                        >
-                          Back
-                        </span>
-                        <button type="submit" style={styles.googleBtn} disabled={socialLoading}>
-                          Verify
-                        </button>
-                      </div>
-                    </form>
-                  )}
-                </div>
-              )}
-
-              {activeSocial === "facebook" && (
-                <div style={styles.fbContainer}>
-                  <div style={styles.fbLogo}>facebook</div>
-                  <div style={styles.fbCard}>
-                    <p style={styles.fbCardText}>Log in to use your Facebook account with <b>CivicTrack</b>.</p>
-                    <form onSubmit={submitSocialLogin}>
-                      <input
-                        placeholder="Full Name"
-                        value={socialForm.name}
-                        style={styles.fbInput}
-                        onChange={(e) => setSocialForm({ ...socialForm, name: e.target.value })}
-                        required
-                      />
-                      <input
-                        type="email"
-                        placeholder="Mobile number or email address"
-                        value={socialForm.email}
-                        style={styles.fbInput}
-                        onChange={(e) => setSocialForm({ ...socialForm, email: e.target.value })}
-                        required
-                      />
-                      <input
-                        type="password"
-                        placeholder="Password"
-                        style={styles.fbInput}
-                        value={socialForm.password}
-                        onChange={(e) => setSocialForm({ ...socialForm, password: e.target.value })}
-                        required
-                      />
-                      <button type="submit" style={styles.fbBtn} disabled={socialLoading}>
-                        {socialLoading ? "Logging In..." : "Log In"}
-                      </button>
-                    </form>
-                    <div style={styles.fbCardFooter}>
-                      <span>Forgot account?</span> · <span>Sign up for Facebook</span>
+              {/* Admin Demo Button */}
+              <button
+                style={{ ...styles.demoBtn, ...styles.demoBtnAdmin }}
+                onClick={() => handleDemoLogin("admin")}
+                disabled={demoLoading !== null}
+              >
+                {demoLoading === "admin" ? (
+                  <span style={styles.spinner} />
+                ) : (
+                  <>
+                    <div style={styles.demoBtnIcon}>⚙️</div>
+                    <div style={styles.demoBtnText}>
+                      <span style={styles.demoBtnLabel}>Admin Dashboard</span>
+                      <span style={styles.demoBtnSub}>Manage issues, assign workers, analytics</span>
                     </div>
-                  </div>
-                </div>
-              )}
+                    <span style={styles.demoBtnArrow}>→</span>
+                  </>
+                )}
+              </button>
 
-              {activeSocial === "twitter" && (
-                <div style={{ ...styles.xContainer, backgroundColor: "#000000", height: "100%", width: "100%", padding: "30px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                  <div style={styles.xLogo}>𝕏</div>
-                  <h3 style={styles.xTitle}>Sign in to Twitter</h3>
-                  
-                  <form onSubmit={submitSocialLogin} style={{ width: "100%", maxWidth: "300px" }}>
-                    <input
-                      placeholder="Full Name"
-                      value={socialForm.name}
-                      style={styles.xInput}
-                      onChange={(e) => setSocialForm({ ...socialForm, name: e.target.value })}
-                      required
-                    />
-                    <input
-                      type="email"
-                      placeholder="Phone, email, or username"
-                      value={socialForm.email}
-                      style={styles.xInput}
-                      onChange={(e) => setSocialForm({ ...socialForm, email: e.target.value })}
-                      required
-                    />
-                    <input
-                      type="password"
-                      placeholder="Password"
-                      style={styles.xInput}
-                      value={socialForm.password}
-                      onChange={(e) => setSocialForm({ ...socialForm, password: e.target.value })}
-                      required
-                    />
-                    
-                    <button type="submit" style={styles.xBtn} disabled={socialLoading}>
-                      {socialLoading ? "Signing in..." : "Log in"}
-                    </button>
-                  </form>
-                  <div style={styles.xFooter}>
-                    <span>Forgot password?</span> · <span>Sign up for X</span>
-                  </div>
+              {/* Worker Demo Button */}
+              <button
+                style={{ ...styles.demoBtn, ...styles.demoBtnWorker }}
+                onClick={() => handleDemoLogin("worker")}
+                disabled={demoLoading !== null}
+              >
+                {demoLoading === "worker" ? (
+                  <span style={styles.spinner} />
+                ) : (
+                  <>
+                    <div style={styles.demoBtnIcon}>👷</div>
+                    <div style={styles.demoBtnText}>
+                      <span style={styles.demoBtnLabel}>Worker Dashboard</span>
+                      <span style={styles.demoBtnSub}>View assignments, submit completions</span>
+                    </div>
+                    <span style={styles.demoBtnArrow}>→</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Feature List */}
+            <div style={styles.featureList}>
+              {[
+                ["📍", "Report civic issues with location"],
+                ["📹", "AI-powered CCTV surveillance"],
+                ["🗺️", "Interactive city map view"],
+                ["🏆", "Community leaderboard & badges"],
+                ["📊", "Real-time analytics"],
+                ["🤖", "AI chatbot assistance"],
+              ].map(([icon, label]) => (
+                <div key={label} style={styles.featureItem}>
+                  <span>{icon}</span>
+                  <span>{label}</span>
                 </div>
-              )}
+              ))}
             </div>
           </div>
         </div>
-      )}
+
+        {/* ===== RIGHT PANEL (Form) ===== */}
+        <div style={styles.rightPanel}>
+          <div style={styles.formCard}>
+
+            <div style={styles.formHeader}>
+              <h2 style={styles.formTitle}>Create Account</h2>
+              <p style={styles.formSub}>Join CivicTrack to report & track civic issues</p>
+            </div>
+
+            {/* Messages */}
+            {error && (
+              <div style={styles.errorBox}>
+                <span>⚠️</span> {error}
+              </div>
+            )}
+            {success && (
+              <div style={styles.successBox}>
+                <span>✅</span> {success}
+              </div>
+            )}
+
+            {showOTP ? (
+              /* OTP Verification Form */
+              <form onSubmit={handleOTPSubmit} style={styles.form}>
+                <div style={styles.otpHeader}>
+                  <div style={styles.otpIcon}>📧</div>
+                  <h3 style={{ color: "#f0f6ff", margin: "12px 0 4px" }}>Verify Your Email</h3>
+                  <p style={{ color: "#64748b", fontSize: "13px", textAlign: "center" }}>
+                    Check the server console for the OTP code sent to<br />
+                    <strong style={{ color: "#3b82f6" }}>{emailForOTP}</strong>
+                  </p>
+                </div>
+                <input
+                  className="glass-input"
+                  type="text"
+                  placeholder="Enter 6-digit OTP code"
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  style={{ textAlign: "center", fontSize: "22px", letterSpacing: "8px", fontWeight: "700" }}
+                  maxLength={6}
+                  required
+                  autoFocus
+                />
+                <button className="premium-btn" type="submit" disabled={otpLoading || otpCode.length !== 6}>
+                  {otpLoading ? "Verifying..." : "✅ Verify & Create Account"}
+                </button>
+                <span className="premium-link" onClick={() => { setShowOTP(false); setOtpCode(""); setError(""); }}>
+                  ← Back to registration
+                </span>
+              </form>
+            ) : (
+              <>
+                {/* Google Sign-In */}
+                <div style={styles.googleSection}>
+                  {googleClientId ? (
+                    <div className="google-btn-wrapper">
+                      <div ref={googleBtnRef} style={{ width: "100%" }} />
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      style={styles.googleFallbackBtn}
+                      onClick={() => {
+                        const id = prompt("Enter your Google Client ID to enable real sign-in:\n(Get it from console.cloud.google.com → APIs & Services → Credentials)");
+                        if (id && id.includes(".apps.googleusercontent.com")) {
+                          localStorage.setItem("civictrack_google_client_id", id);
+                          window.location.reload();
+                        } else if (id) {
+                          alert("That doesn't look like a valid Google Client ID. It should end with .apps.googleusercontent.com");
+                        }
+                      }}
+                    >
+                      <svg style={{ width: "20px", height: "20px", flexShrink: 0 }} viewBox="0 0 24 24">
+                        <path fill="#EA4335" d="M12 5.04c1.66 0 3.2.57 4.38 1.69l3.27-3.27C17.68 1.54 14.98 1 12 1 7.35 1 3.37 3.67 1.39 7.56l3.85 2.99c.9-2.7 3.42-4.51 6.76-4.51z"/>
+                        <path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.36H12v4.51h6.46c-.29 1.48-1.14 2.73-2.4 3.58l3.73 2.88c2.18-2 3.7-4.97 3.7-8.61z"/>
+                        <path fill="#FBBC05" d="M5.24 14.55c-.24-.72-.38-1.5-.38-2.3s.14-1.58.38-2.3L1.39 6.96C.5 8.74 0 10.74 0 12.8s.5 4.06 1.39 5.84l3.85-4.09z"/>
+                        <path fill="#34A853" d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.73-2.88c-1.04.7-2.38 1.12-3.96 1.12-3.34 0-5.86-1.81-6.76-4.51L1.66 16.9C3.64 20.79 7.62 23 12 23z"/>
+                      </svg>
+                      <span>{googleLoading ? "Signing up..." : "Sign up with Google"}</span>
+                    </button>
+                  )}
+                  <p style={styles.googleHint}>
+                    ✨ Recommended — No password needed
+                  </p>
+                </div>
+
+                {/* Divider */}
+                <div style={styles.divider}>
+                  <div style={styles.dividerLine} />
+                  <span style={styles.dividerText}>or register with email</span>
+                  <div style={styles.dividerLine} />
+                </div>
+
+                {/* Email Registration Form */}
+                <form onSubmit={handleSubmit} style={styles.form}>
+                  <input
+                    className="glass-input"
+                    placeholder="Full Name"
+                    value={data.name}
+                    onChange={e => setData({ ...data, name: e.target.value })}
+                    required
+                  />
+                  <input
+                    className="glass-input"
+                    type="email"
+                    placeholder="Email Address"
+                    value={data.email}
+                    onChange={e => setData({ ...data, email: e.target.value })}
+                    required
+                  />
+
+                  {/* Password with toggle */}
+                  <div style={{ position: "relative" }}>
+                    <input
+                      className="glass-input"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Create Password"
+                      value={data.password}
+                      onChange={e => setData({ ...data, password: e.target.value })}
+                      style={{ paddingRight: "44px" }}
+                      required
+                    />
+                    <button type="button" style={styles.eyeBtn} onClick={() => setShowPassword(p => !p)}>
+                      {showPassword ? "🙈" : "👁️"}
+                    </button>
+                  </div>
+
+                  {/* Password Strength */}
+                  {data.password && (
+                    <div style={{ marginTop: "-4px", marginBottom: "4px" }}>
+                      <div className="progress-bar-track">
+                        <div className="progress-bar-fill" style={{ width: `${(pwStrength.level / 4) * 100}%`, background: pwStrength.color }} />
+                      </div>
+                      <span style={{ fontSize: "11px", color: pwStrength.color, fontWeight: "600" }}>
+                        {pwStrength.label}
+                      </span>
+                    </div>
+                  )}
+
+                  <input
+                    className="glass-input"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Confirm Password"
+                    value={data.confirmPassword}
+                    onChange={e => setData({ ...data, confirmPassword: e.target.value })}
+                    required
+                  />
+
+                  <button className="premium-btn" type="submit" disabled={loading}>
+                    {loading ? "Creating Account..." : "🚀 Create Account"}
+                  </button>
+                </form>
+
+                <p style={{ textAlign: "center", marginTop: "16px", fontSize: "13px", color: "#64748b" }}>
+                  Already have an account?{" "}
+                  <span
+                    onClick={() => navigate("/")}
+                    style={{ color: "#3b82f6", cursor: "pointer", fontWeight: "600" }}
+                  >
+                    Sign In
+                  </span>
+                </p>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
 
 const styles = {
-  container: {
-    height: "100vh",
+  page: {
+    minHeight: "100vh",
+    background: "linear-gradient(135deg, #060b18 0%, #0d1526 50%, #060b18 100%)",
     display: "flex",
-    justifyContent: "center",
     alignItems: "center",
-    background: "radial-gradient(circle at 50% 50%, #0f172a 0%, #020617 100%)",
-    padding: "20px",
-    boxSizing: "border-box",
+    justifyContent: "center",
     position: "relative",
     overflow: "hidden"
   },
-  iconContainer: {
-    fontSize: "36px",
-    marginBottom: "12px",
-    display: "inline-block"
-  },
-  title: {
-    color: "#ffffff",
-    fontWeight: "700",
-    fontSize: "24px",
-    margin: "0 0 4px 0"
-  },
-  subtitle: {
-    color: "#64748b",
-    fontSize: "14px",
-    margin: "0 0 24px 0"
-  },
-  googleBtnContainer: {
+  container: {
     display: "flex",
-    justifyContent: "center",
-    margin: "15px 0 10px 0",
-    width: "100%"
+    width: "100%",
+    maxWidth: "1100px",
+    minHeight: "100vh",
+    position: "relative",
+    zIndex: 1
   },
-  socialDivider: {
+  leftPanel: {
+    flex: "0 0 50%",
+    padding: "60px 40px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    margin: "15px 0 10px 0",
-    gap: "10px"
+    background: "rgba(6, 11, 24, 0.5)",
+    borderRight: "1px solid rgba(255,255,255,0.06)"
   },
-  dividerLine: {
-    flex: 1,
-    height: "1px",
-    background: "rgba(255, 255, 255, 0.08)"
-  },
-  dividerText: {
-    fontSize: "11px",
-    color: "#475569",
-    textTransform: "uppercase"
-  },
-  socialBtn: {
-    background: "rgba(255, 255, 255, 0.04)",
-    border: "1px solid rgba(255, 255, 255, 0.08)",
-    padding: "10px 5px",
-    borderRadius: "8px",
-    color: "#cbd5e1",
-    fontSize: "12px",
-    cursor: "pointer",
-    fontWeight: "600",
-    transition: "all 0.2s ease"
-  },
-  socialGrid: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "10px",
-    marginBottom: "15px",
-    maxWidth: "320px",
-    margin: "0 auto",
+  leftContent: {
+    maxWidth: "400px",
     width: "100%"
   },
-  mockGoogleBtn: {
+  leftLogo: {
+    fontSize: "48px",
+    marginBottom: "12px"
+  },
+  leftTitle: {
+    fontSize: "38px",
+    fontWeight: "900",
+    background: "linear-gradient(135deg, #3b82f6 0%, #06b6d4 50%, #8b5cf6 100%)",
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    backgroundClip: "text",
+    margin: "0 0 8px",
+    letterSpacing: "-1.5px"
+  },
+  leftSub: {
+    color: "#64748b",
+    fontSize: "15px",
+    marginBottom: "32px"
+  },
+  demoSection: {
+    background: "rgba(255,255,255,0.03)",
+    border: "1px solid rgba(255,255,255,0.06)",
+    borderRadius: "18px",
+    padding: "24px",
+    marginBottom: "24px"
+  },
+  demoHeading: {
+    fontSize: "13px",
+    color: "#94a3b8",
+    marginBottom: "6px",
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    fontWeight: "600"
+  },
+  demoPill: {
+    background: "rgba(236, 72, 153, 0.15)",
+    color: "#ec4899",
+    border: "1px solid rgba(236, 72, 153, 0.3)",
+    borderRadius: "100px",
+    padding: "2px 8px",
+    fontSize: "10px",
+    fontWeight: "700",
+    letterSpacing: "0.5px"
+  },
+  demoDesc: {
+    fontSize: "12px",
+    color: "#475569",
+    marginBottom: "16px",
+    lineHeight: "1.5"
+  },
+  demoBtn: {
+    width: "100%",
+    display: "flex",
+    alignItems: "center",
+    gap: "14px",
+    padding: "14px 16px",
+    borderRadius: "12px",
+    border: "1px solid",
+    cursor: "pointer",
+    transition: "all 0.25s",
+    marginBottom: "10px",
+    background: "transparent",
+    textAlign: "left",
+    position: "relative",
+    overflow: "hidden",
+    minHeight: "62px"
+  },
+  demoBtnAdmin: {
+    borderColor: "rgba(245, 158, 11, 0.3)",
+    background: "rgba(245, 158, 11, 0.06)"
+  },
+  demoBtnWorker: {
+    borderColor: "rgba(16, 185, 129, 0.3)",
+    background: "rgba(16, 185, 129, 0.06)"
+  },
+  demoBtnIcon: { fontSize: "24px", flexShrink: 0 },
+  demoBtnText: { display: "flex", flexDirection: "column", gap: "2px", flex: 1 },
+  demoBtnLabel: { fontSize: "14px", fontWeight: "700", color: "#f0f6ff" },
+  demoBtnSub: { fontSize: "11px", color: "#64748b" },
+  demoBtnArrow: { fontSize: "16px", color: "#475569" },
+  spinner: {
+    width: "20px",
+    height: "20px",
+    border: "3px solid rgba(255,255,255,0.2)",
+    borderTopColor: "white",
+    borderRadius: "50%",
+    animation: "spin 0.8s linear infinite",
+    display: "inline-block"
+  },
+  featureList: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "8px"
+  },
+  featureItem: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    fontSize: "12px",
+    color: "#64748b",
+    padding: "6px 8px",
+    background: "rgba(255,255,255,0.02)",
+    borderRadius: "8px",
+    border: "1px solid rgba(255,255,255,0.04)"
+  },
+  rightPanel: {
+    flex: "0 0 50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "60px 40px"
+  },
+  formCard: {
+    width: "100%",
+    maxWidth: "420px",
+    background: "rgba(13, 21, 38, 0.92)",
+    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: "24px",
+    padding: "36px 32px",
+    backdropFilter: "blur(20px)",
+    boxShadow: "0 25px 80px rgba(0,0,0,0.6), 0 0 60px rgba(59,130,246,0.05)"
+  },
+  formHeader: { marginBottom: "24px", textAlign: "center" },
+  formTitle: {
+    fontSize: "26px",
+    fontWeight: "800",
+    color: "#f0f6ff",
+    margin: "0 0 6px",
+    letterSpacing: "-0.5px"
+  },
+  formSub: { fontSize: "14px", color: "#64748b", margin: 0 },
+  errorBox: {
+    background: "rgba(239, 68, 68, 0.1)",
+    border: "1px solid rgba(239, 68, 68, 0.3)",
+    borderRadius: "10px",
+    padding: "12px 16px",
+    fontSize: "13px",
+    color: "#fca5a5",
+    marginBottom: "16px",
+    display: "flex",
+    gap: "8px",
+    alignItems: "flex-start"
+  },
+  successBox: {
+    background: "rgba(16, 185, 129, 0.1)",
+    border: "1px solid rgba(16, 185, 129, 0.3)",
+    borderRadius: "10px",
+    padding: "12px 16px",
+    fontSize: "13px",
+    color: "#6ee7b7",
+    marginBottom: "16px",
+    display: "flex",
+    gap: "8px",
+    alignItems: "flex-start"
+  },
+  form: { display: "flex", flexDirection: "column", gap: "12px" },
+  googleSection: { marginBottom: "4px" },
+  googleFallbackBtn: {
+    width: "100%",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     gap: "12px",
-    width: "320px",
-    height: "44px",
-    backgroundColor: "#ffffff",
-    border: "1px solid #dadce0",
-    borderRadius: "4px",
-    color: "#3c4043",
-    fontSize: "14px",
-    fontWeight: "500",
-    cursor: "pointer",
-    boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
-    transition: "background-color 0.2s, box-shadow 0.2s",
-    fontFamily: "'Roboto', sans-serif"
-  },
-  mockGoogleIcon: {
-    width: "18px",
-    height: "18px"
-  },
-  googleContainer: {
-    width: "100%",
-    height: "100%",
-    padding: "40px 30px",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    backgroundColor: "#ffffff",
-    color: "#202124",
-    fontFamily: "'Roboto', 'Helvetica Neue', sans-serif",
-    boxSizing: "border-box"
-  },
-  googleLogo: {
-    fontSize: "24px",
-    fontWeight: "500",
-    marginBottom: "16px",
-    letterSpacing: "-0.5px"
-  },
-  googleTitle: {
-    fontSize: "24px",
-    fontWeight: "400",
-    color: "#202124",
-    margin: "0 0 8px 0",
-    textAlign: "center"
-  },
-  googleSub: {
-    fontSize: "16px",
-    color: "#5f6368",
-    margin: "0 0 30px 0",
-    textAlign: "center"
-  },
-  googleInput: {
-    width: "100%",
-    padding: "16px 14px",
-    margin: "10px 0",
-    borderRadius: "4px",
-    border: "1px solid #dadce0",
-    fontSize: "16px",
-    color: "#202124",
-    outline: "none",
-    backgroundColor: "#ffffff",
-    boxSizing: "border-box",
-    transition: "border-color 0.2s",
-    fontFamily: "'Roboto', sans-serif"
-  },
-  googleFooter: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    width: "100%",
-    marginTop: "26px"
-  },
-  googleCreateLink: {
-    color: "#1a73e8",
-    fontSize: "14px",
-    fontWeight: "500",
-    cursor: "pointer",
-    userSelect: "none"
-  },
-  googleBtn: {
-    backgroundColor: "#1a73e8",
-    color: "#ffffff",
-    border: "none",
-    borderRadius: "4px",
-    padding: "10px 24px",
-    fontSize: "14px",
-    fontWeight: "500",
-    cursor: "pointer",
-    boxShadow: "none",
-    transition: "background-color 0.2s"
-  },
-  googleUserPill: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "8px",
-    padding: "6px 12px",
-    borderRadius: "16px",
-    border: "1px solid #dadce0",
-    backgroundColor: "#ffffff",
-    marginBottom: "20px",
-    maxWidth: "100%",
-    boxSizing: "border-box"
-  },
-  googleUserIcon: {
-    fontSize: "14px"
-  },
-  googleUserEmail: {
-    fontSize: "14px",
-    color: "#3c4043",
-    fontWeight: "500",
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    maxWidth: "180px"
-  },
-  simulationNotification: {
-    backgroundColor: "#eff6ff",
-    border: "1px solid #bfdbfe",
-    borderRadius: "6px",
-    padding: "10px 14px",
-    width: "100%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: "16px",
-    boxSizing: "border-box"
-  },
-  socialOverlay: {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    background: "rgba(2, 6, 23, 0.8)",
-    backdropFilter: "blur(4px)",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 1000,
-    boxSizing: "border-box"
-  },
-  oauthWindow: {
-    width: "480px",
-    height: "550px",
+    padding: "13px",
+    background: "rgba(255,255,255,0.06)",
+    border: "1px solid rgba(255,255,255,0.12)",
     borderRadius: "12px",
-    boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.6)",
-    overflow: "hidden",
-    border: "1px solid rgba(255, 255, 255, 0.15)",
-    display: "flex",
-    flexDirection: "column"
+    color: "#f0f6ff",
+    fontSize: "15px",
+    fontWeight: "600",
+    cursor: "pointer",
+    transition: "all 0.2s",
+    fontFamily: "'Outfit', sans-serif"
   },
-  browserHeader: {
-    height: "40px",
-    background: "#1e293b",
-    borderBottom: "1px solid rgba(255,255,255,0.08)",
-    display: "flex",
-    alignItems: "center",
-    padding: "0 15px",
-    gap: "15px"
-  },
-  browserDots: {
-    display: "flex",
-    gap: "6px"
-  },
-  dot: {
-    width: "10px",
-    height: "10px",
-    borderRadius: "50%"
-  },
-  browserAddressBar: {
-    flex: 1,
-    background: "#0f172a",
-    borderRadius: "6px",
+  googleHint: {
+    textAlign: "center",
     fontSize: "11px",
-    color: "#94a3b8",
-    padding: "5px 10px",
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    border: "1px solid rgba(255,255,255,0.05)"
+    color: "#475569",
+    margin: "6px 0 0"
   },
-  browserClose: {
-    background: "transparent",
-    border: "none",
-    color: "#94a3b8",
-    fontSize: "18px",
-    cursor: "pointer",
-    padding: 0,
-    lineHeight: 1
+  divider: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    margin: "16px 0"
   },
-  oauthContent: {
+  dividerLine: {
     flex: 1,
-    overflowY: "auto",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    boxSizing: "border-box"
+    height: "1px",
+    background: "rgba(255,255,255,0.07)"
   },
-  fbContainer: {
-    width: "100%",
-    padding: "30px",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    fontFamily: "Helvetica, Arial, sans-serif"
-  },
-  fbLogo: {
-    color: "#1877f2",
-    fontSize: "36px",
-    fontWeight: "bold",
-    marginBottom: "20px",
-    letterSpacing: "-1px"
-  },
-  fbCard: {
-    background: "#ffffff",
-    border: "1px solid #dddfe2",
-    borderRadius: "8px",
-    padding: "20px",
-    width: "100%",
-    maxWidth: "360px",
-    boxShadow: "0 2px 4px rgba(0, 0, 0, .1)",
-    boxSizing: "border-box"
-  },
-  fbCardText: {
-    fontSize: "14px",
-    color: "#606770",
-    textAlign: "center",
-    margin: "0 0 15px 0",
-    lineHeight: "1.4"
-  },
-  fbInput: {
-    width: "100%",
-    padding: "14px 12px",
-    margin: "6px 0",
-    borderRadius: "6px",
-    border: "1px solid #dddfe2",
-    background: "#ffffff",
-    color: "#1c1e21",
-    fontSize: "14px",
-    boxSizing: "border-box",
-    outline: "none"
-  },
-  fbBtn: {
-    background: "#1877f2",
-    color: "white",
-    border: "none",
-    borderRadius: "6px",
-    width: "100%",
-    padding: "12px",
-    fontSize: "16px",
-    fontWeight: "bold",
-    cursor: "pointer",
-    marginTop: "12px",
-    boxShadow: "0 2px 4px rgba(0,0,0,0.15)"
-  },
-  fbCardFooter: {
-    textAlign: "center",
+  dividerText: {
     fontSize: "12px",
-    color: "#1877f2",
-    marginTop: "15px",
-    cursor: "pointer"
+    color: "#475569",
+    whiteSpace: "nowrap",
+    fontWeight: "500"
   },
-  xContainer: {
-    width: "100%",
+  eyeBtn: {
+    position: "absolute",
+    right: "12px",
+    top: "50%",
+    transform: "translateY(-50%)",
+    background: "none",
+    border: "none",
+    cursor: "pointer",
+    fontSize: "16px",
+    padding: "4px"
+  },
+  otpHeader: {
+    textAlign: "center",
+    marginBottom: "20px",
     display: "flex",
     flexDirection: "column",
+    alignItems: "center"
+  },
+  otpIcon: {
+    width: "56px",
+    height: "56px",
+    background: "rgba(59, 130, 246, 0.1)",
+    border: "1px solid rgba(59, 130, 246, 0.3)",
+    borderRadius: "50%",
+    display: "flex",
     alignItems: "center",
-    fontFamily: "Segoe UI, Arial, sans-serif"
-  },
-  xLogo: {
-    fontSize: "44px",
-    fontWeight: "bold",
-    marginBottom: "25px",
-    color: "#ffffff"
-  },
-  xTitle: {
-    fontSize: "24px",
-    fontWeight: "bold",
-    marginBottom: "25px",
-    color: "#ffffff"
-  },
-  xInput: {
-    width: "100%",
-    padding: "16px 12px",
-    margin: "8px 0",
-    borderRadius: "4px",
-    border: "1px solid #333333",
-    background: "#000000",
-    color: "#e7e9ea",
-    fontSize: "15px",
-    boxSizing: "border-box",
-    outline: "none"
-  },
-  xBtn: {
-    background: "#ffffff",
-    color: "#0f1419",
-    border: "none",
-    borderRadius: "20px",
-    width: "100%",
-    padding: "12px",
-    fontSize: "15px",
-    fontWeight: "bold",
-    cursor: "pointer",
-    marginTop: "20px"
-  },
-  xFooter: {
-    fontSize: "13px",
-    color: "#1d9bf0",
-    marginTop: "25px",
-    cursor: "pointer"
+    justifyContent: "center",
+    fontSize: "24px"
   }
 };

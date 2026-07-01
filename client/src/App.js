@@ -9,6 +9,7 @@ import CreateIssue from "./pages/CreateIssue";
 import Issues from "./pages/Issues";
 import MapView from "./pages/MapView";
 import About from "./pages/About";
+import LiveFeed from "./pages/LiveFeed";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import Profile from "./pages/Profile";
@@ -34,8 +35,9 @@ function App() {
         {/* PUBLIC */}
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/about" element={<About />} />
 
-        {/* USER */}
+        {/* USER / CITIZEN */}
         <Route path="/dashboard" element={
           <ProtectedRoute>
             <DynamicDashboardRedirect />
@@ -48,6 +50,7 @@ function App() {
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
         <Route path="/faq" element={<ProtectedRoute><FAQ /></ProtectedRoute>} />
+        <Route path="/livefeed" element={<ProtectedRoute><LiveFeed /></ProtectedRoute>} />
 
         {/* ADMIN */}
         <Route path="/admin" element={
@@ -68,7 +71,8 @@ function App() {
           </ProtectedRoute>
         } />
 
-        <Route path="/about" element={<About />} />
+        {/* CATCH-ALL */}
+        <Route path="*" element={<Navigate to="/" replace />} />
 
       </Routes>
     </Router>

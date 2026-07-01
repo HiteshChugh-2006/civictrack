@@ -14,13 +14,19 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ storage });
+const fileFilter = (req, file, cb) => {
+  // Accept images and videos
+  if (file.mimetype.startsWith("image/") || file.mimetype.startsWith("video/")) {
+    cb(null, true);
+  } else {
+    cb(new Error("Only image and video files are allowed"), false);
+  }
+};
+
+const upload = multer({ storage, fileFilter, limits: { fileSize: 100 * 1024 * 1024 } }); // 100MB limit
 
 
-// =============================
-// ✅ CREATE ISSUE
-// =============================
-router.post("/", auth, upload.single("image"), async (req, res) => {
+router.post("/", auth, upload.fields([{ name: "image", maxCount: 1 }, { name: "video", maxCount: 1 }]), async (req, res) => {
   try {
     let location = null;
 
@@ -35,8 +41,12 @@ router.post("/", auth, upload.single("image"), async (req, res) => {
     const issue = await Issue.create({
       title: req.body.title,
       description: req.body.description,
+      category: req.body.category || "other",
+      priority: req.body.priority || "medium",
+      address: req.body.address || "",
       location,
-      image: req.file ? req.file.filename : "",
+      image: req.files?.image?.[0]?.filename || "",
+      video: req.files?.video?.[0]?.filename || "",
       createdBy: req.user.id,
       status: "submitted"
     });

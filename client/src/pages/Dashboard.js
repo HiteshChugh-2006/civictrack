@@ -71,43 +71,48 @@ export default function Dashboard() {
 
   const COLORS = ["#22c55e", "#f59e0b"];
 
-  if (loading) return <h2 style={{ padding: 100, color: "#ffffff", background: "#0f172a", minHeight: "100vh" }}>Loading...</h2>;
+  if (loading) return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "#060b18", flexDirection: "column", gap: "16px" }}>
+      <div style={{ width: "40px", height: "40px", border: "3px solid rgba(59,130,246,0.3)", borderTopColor: "#3b82f6", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+      <p style={{ color: "#475569", fontSize: "14px" }}>Loading dashboard...</p>
+    </div>
+  );
 
-  return (
     <div style={styles.wrapper}>
       <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} />
       <Navbar setIsOpen={setIsOpen} />
 
-      <div style={{
-        ...styles.main,
-        marginLeft: isOpen ? "220px" : "20px"
-      }}>
-        <h2 style={styles.welcome}>
-          Welcome, {user?.name || "User"} 👋
-        </h2>
+      <div style={{ ...styles.main, marginLeft: isOpen ? "240px" : "20px" }}>
 
-        <h1 style={styles.heading}>Citizen Dashboard</h1>
-
-        {/* STATS */}
-        <div style={styles.grid}>
-          <Card title="My Issues" value={stats.myTotal} color="#3b82f6" />
-          <Card title="Resolved" value={stats.resolved} color="#22c55e" />
-          <Card title="Pending" value={stats.pending} color="#f59e0b" />
-          <Card title="Total Issues" value={stats.total} color="#6366f1" />
-          <Card 
-            title="City Health Index" 
-            value={`${cityHealthIndex}%`} 
-            color="#10b981" 
-            sub="Resolved ratio"
-            glow={true}
-          />
+        {/* HEADER */}
+        <div style={styles.pageHeader}>
+          <div>
+            <p style={styles.welcome}>👋 Welcome back, <strong style={{ color: "#f0f6ff" }}>{user?.name || "Citizen"}</strong></p>
+            <h1 style={styles.heading}>Citizen Dashboard</h1>
+          </div>
+          <div style={styles.cityHealthBig}>
+            <div style={{ fontSize: "11px", color: "#475569", fontWeight: "600", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "4px" }}>City Health Index</div>
+            <div style={{ fontSize: "36px", fontWeight: "900", color: cityHealthIndex > 70 ? "#10b981" : cityHealthIndex > 40 ? "#f59e0b" : "#ef4444", fontFamily: "JetBrains Mono, monospace", lineHeight: 1 }}>{cityHealthIndex}%</div>
+            <div className="progress-bar-track" style={{ marginTop: "6px", width: "120px" }}>
+              <div className="progress-bar-fill" style={{ width: `${cityHealthIndex}%`, background: cityHealthIndex > 70 ? "#10b981" : cityHealthIndex > 40 ? "#f59e0b" : "#ef4444" }} />
+            </div>
+          </div>
         </div>
 
-        {/* ACTIONS */}
+        {/* STATS GRID */}
+        <div style={styles.grid}>
+          <StatCard title="My Issues" value={stats.myTotal} color="#3b82f6" icon="📁" />
+          <StatCard title="Resolved" value={stats.resolved} color="#10b981" icon="✅" />
+          <StatCard title="Pending" value={stats.pending} color="#f59e0b" icon="⏳" />
+          <StatCard title="City Total" value={stats.total} color="#8b5cf6" icon="🌆" />
+        </div>
+
+        {/* QUICK ACTIONS */}
         <div style={styles.actionGrid}>
-          <Action title="📍 Report Issue" onClick={() => navigate("/create")} />
-          <Action title="📊 My Issues" onClick={() => navigate("/issues")} />
-          <Action title="🗺️ Map View" onClick={() => navigate("/map")} />
+          <Action title="📍 Report Issue" sub="File a new civic report" onClick={() => navigate("/create")} color="#3b82f6" />
+          <Action title="📋 My Issues" sub="View & track your reports" onClick={() => navigate("/issues")} color="#8b5cf6" />
+          <Action title="🗺️ City Map" sub="Explore issue heatmap" onClick={() => navigate("/map")} color="#10b981" />
+          <Action title="📹 Live Feed" sub="AI CCTV surveillance" onClick={() => navigate("/livefeed")} color="#06b6d4" />
         </div>
 
         {/* ANNOUNCEMENTS & CHARTS SPLIT */}
@@ -189,196 +194,85 @@ export default function Dashboard() {
 
 
 /* COMPONENTS */
-const Card = ({ title, value, color, sub, glow }) => (
-  <div style={{ 
-    ...styles.card, 
-    borderTop: `4px solid ${color}`,
-    boxShadow: glow ? `0 0 15px rgba(16, 185, 129, 0.2), 0 8px 32px 0 rgba(0, 0, 0, 0.3)` : styles.card.boxShadow
-  }}>
-    <h4 style={styles.cardTitle}>{title}</h4>
-    <h2 style={{ fontSize: "28px", margin: "5px 0 0 0", color: "#ffffff", fontWeight: "700" }}>{value}</h2>
-    {sub && <span style={{ fontSize: "11px", color: "#64748b", display: "block", marginTop: "2px" }}>{sub}</span>}
+const StatCard = ({ title, value, color, icon }) => (
+  <div style={{ ...styles.card, position: "relative", overflow: "hidden" }}>
+    <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "3px", background: color }} />
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+      <div>
+        <div style={styles.cardTitle}>{title}</div>
+        <div style={{ ...styles.cardValue, color }}>{value}</div>
+      </div>
+      <div style={{ fontSize: "24px", opacity: 0.6 }}>{icon}</div>
+    </div>
   </div>
 );
 
-const Action = ({ title, onClick }) => (
-  <div onClick={onClick} style={styles.action}>
-    {title}
+const Action = ({ title, sub, onClick, color }) => (
+  <div onClick={onClick} style={{ ...styles.action, borderTop: `3px solid ${color}20`, position: "relative", overflow: "hidden" }}>
+    <div style={{ fontSize: "18px", marginBottom: "4px" }}>{title}</div>
+    <div style={{ fontSize: "12px", color: "#475569" }}>{sub}</div>
+    <div style={{ position: "absolute", bottom: "12px", right: "14px", fontSize: "18px", color, opacity: 0.5 }}>→</div>
   </div>
 );
 
 
 const styles = {
-  wrapper: {
-    display: "flex",
-    background: "#0f172a",
-    minHeight: "100vh",
-    color: "#f8fafc"
-  },
-
-  main: {
-    padding: "30px",
-    width: "100%",
-    marginTop: "60px",
-    transition: "0.3s",
-    boxSizing: "border-box"
-  },
-
-  welcome: {
-    color: "#94a3b8",
-    marginBottom: "5px",
-    fontSize: "16px"
-  },
-
-  heading: {
-    marginBottom: "20px",
-    color: "#ffffff",
-    fontSize: "28px",
-    fontWeight: "700"
-  },
-
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-    gap: "20px",
-    marginBottom: "25px"
-  },
-
-  actionGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-    gap: "20px",
-    marginBottom: "30px"
-  },
-
+  wrapper: { display: "flex", background: "#060b18", minHeight: "100vh", color: "#f0f6ff" },
+  main: { paddingTop: "84px", padding: "84px 24px 40px", width: "100%", transition: "margin-left 0.3s", boxSizing: "border-box" },
+  pageHeader: { display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "28px", flexWrap: "wrap", gap: "16px" },
+  welcome: { color: "#64748b", marginBottom: "4px", fontSize: "15px", margin: "0 0 4px" },
+  heading: { fontSize: "30px", fontWeight: "900", color: "#f0f6ff", margin: 0, letterSpacing: "-1px" },
+  cityHealthBig: { textAlign: "right" },
+  grid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "16px", marginBottom: "24px" },
   card: {
-    background: "rgba(30, 41, 59, 0.45)",
-    backdropFilter: "blur(12px)",
-    border: "1px solid rgba(255, 255, 255, 0.08)",
-    padding: "20px",
-    borderRadius: "12px",
-    boxShadow: "0 8px 32px 0 rgba(0, 0, 0, 0.3)"
+    background: "rgba(13, 21, 38, 0.9)",
+    border: "1px solid rgba(255,255,255,0.07)",
+    padding: "22px",
+    borderRadius: "14px",
+    transition: "all 0.25s",
+    backdropFilter: "blur(12px)"
   },
-
-  cardTitle: {
-    color: "#94a3b8",
-    fontSize: "13px",
-    fontWeight: "500",
-    margin: 0
-  },
-
+  cardTitle: { color: "#64748b", fontSize: "12px", fontWeight: "600", textTransform: "uppercase", letterSpacing: "1px", margin: 0 },
+  cardValue: { fontSize: "30px", fontWeight: "800", fontFamily: "JetBrains Mono, monospace", letterSpacing: "-1px", lineHeight: 1, marginTop: "8px" },
+  actionGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "16px", marginBottom: "28px" },
   action: {
-    background: "rgba(30, 41, 59, 0.45)",
-    backdropFilter: "blur(12px)",
-    border: "1px solid rgba(255, 255, 255, 0.08)",
-    padding: "20px",
-    borderRadius: "12px",
+    background: "rgba(13, 21, 38, 0.85)",
+    border: "1px solid rgba(255,255,255,0.07)",
+    padding: "20px 22px",
+    borderRadius: "14px",
     cursor: "pointer",
-    textAlign: "center",
-    fontWeight: "600",
-    boxShadow: "0 8px 32px 0 rgba(0, 0, 0, 0.3)",
-    color: "#ffffff",
-    transition: "all 0.2s ease",
-    fontSize: "15px"
-  },
-
-  contentSplit: {
-    display: "grid",
-    gridTemplateColumns: "1.2fr 0.8fr",
-    gap: "20px",
-    alignItems: "start"
-  },
-
-  chartsContainer: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "20px"
-  },
-
-  chartCard: {
-    background: "rgba(30, 41, 59, 0.45)",
-    backdropFilter: "blur(12px)",
-    border: "1px solid rgba(255, 255, 255, 0.08)",
-    padding: "20px",
-    borderRadius: "14px",
-    boxShadow: "0 8px 32px 0 rgba(0, 0, 0, 0.3)",
-    color: "#ffffff"
-  },
-
-  chartTitle: {
+    fontWeight: "700",
     fontSize: "15px",
-    margin: "0 0 15px 0",
-    fontWeight: "600",
-    color: "#ffffff"
+    color: "#f0f6ff",
+    transition: "all 0.25s",
+    boxShadow: "0 4px 20px rgba(0,0,0,0.4)"
   },
-
-  newsCard: {
-    background: "rgba(30, 41, 59, 0.45)",
-    backdropFilter: "blur(12px)",
-    border: "1px solid rgba(255, 255, 255, 0.08)",
+  contentSplit: { display: "grid", gridTemplateColumns: "1.2fr 0.8fr", gap: "20px", alignItems: "start" },
+  chartsContainer: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" },
+  chartCard: {
+    background: "rgba(13, 21, 38, 0.9)",
+    border: "1px solid rgba(255,255,255,0.07)",
     padding: "20px",
     borderRadius: "14px",
-    boxShadow: "0 8px 32px 0 rgba(0, 0, 0, 0.3)",
-    color: "#ffffff",
-    maxHeight: "330px",
+    color: "#f0f6ff"
+  },
+  chartTitle: { fontSize: "14px", margin: "0 0 14px 0", fontWeight: "700", color: "#f0f6ff" },
+  newsCard: {
+    background: "rgba(13, 21, 38, 0.9)",
+    border: "1px solid rgba(255,255,255,0.07)",
+    padding: "20px",
+    borderRadius: "14px",
+    color: "#f0f6ff",
+    maxHeight: "350px",
     display: "flex",
     flexDirection: "column"
   },
-
-  newsHeader: {
-    fontSize: "16px",
-    fontWeight: "600",
-    margin: "0 0 15px 0"
-  },
-
-  newsList: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px",
-    overflowY: "auto",
-    flex: 1,
-    paddingRight: "5px"
-  },
-
-  newsItem: {
-    background: "rgba(15, 23, 42, 0.3)",
-    padding: "10px 12px",
-    borderRadius: "8px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "5px"
-  },
-
-  newsMeta: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center"
-  },
-
-  newsTitle: {
-    fontWeight: "600",
-    fontSize: "13px",
-    color: "#ffffff"
-  },
-
-  newsBadge: {
-    fontSize: "10px",
-    fontWeight: "bold",
-    padding: "2px 6px",
-    borderRadius: "4px",
-    textTransform: "uppercase"
-  },
-
-  newsContent: {
-    fontSize: "12px",
-    color: "#cbd5e1",
-    margin: 0,
-    lineHeight: "1.4"
-  },
-
-  newsDate: {
-    fontSize: "10px",
-    color: "#64748b",
-    alignSelf: "flex-end"
-  }
+  newsHeader: { fontSize: "15px", fontWeight: "700", margin: "0 0 14px 0" },
+  newsList: { display: "flex", flexDirection: "column", gap: "10px", overflowY: "auto", flex: 1 },
+  newsItem: { background: "rgba(255,255,255,0.03)", padding: "12px", borderRadius: "10px", display: "flex", flexDirection: "column", gap: "4px" },
+  newsMeta: { display: "flex", justifyContent: "space-between", alignItems: "center" },
+  newsTitle: { fontWeight: "600", fontSize: "13px", color: "#f0f6ff" },
+  newsBadge: { fontSize: "10px", fontWeight: "700", padding: "2px 7px", borderRadius: "100px", textTransform: "uppercase" },
+  newsContent: { fontSize: "12px", color: "#94a3b8", margin: 0, lineHeight: "1.5" },
+  newsDate: { fontSize: "10px", color: "#475569", alignSelf: "flex-end" }
 };

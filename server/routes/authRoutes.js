@@ -392,7 +392,7 @@ router.post("/google-login", async (req, res) => {
       return res.status(400).json("Invalid Google Token payload");
     }
 
-    const { email, name } = payload;
+    const { email, name, sub: googleId, picture } = payload;
     let user = await User.findOne({ email });
 
     if (!user) {
@@ -404,17 +404,25 @@ router.post("/google-login", async (req, res) => {
         name: name || "Google User",
         email,
         password: hashed,
-        role: "citizen"
+        googleId: googleId || "",
+        avatar: picture || "",
+        role: "citizen",
+        lastLogin: new Date()
       });
       console.log(`[GOOGLE OAUTH SIGNUP] Registered account for ${email}`);
     } else {
+      // Update google metadata on subsequent logins
+      user.googleId = googleId || user.googleId;
+      user.avatar = picture || user.avatar;
+      user.lastLogin = new Date();
+      await user.save();
       console.log(`[GOOGLE OAUTH LOGIN] Authenticated user ${email}`);
     }
 
     const token = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: "1d" }
+      { expiresIn: "7d" }
     );
 
     res.json({
@@ -425,6 +433,58 @@ router.post("/google-login", async (req, res) => {
   } catch (err) {
     console.error("Google Auth Token Error:", err.message);
     res.status(400).json("Google authentication failed. Invalid token.");
+  }
+});
+
+// ================= DEMO LOGIN (Admin / Worker Preview) =================
+router.post("/demo-login", async (req, res) => {
+  try {
+    const { role } = req.body;
+
+    if (!role || !["admin", "worker"].includes(role)) {
+      return res.status(400).json("Invalid demo role. Must be 'admin' or 'worker'.");
+    }
+
+    const demoEmail = `demo_${role}@civictrack.demo`;
+    const demoName = role === "admin" ? "Demo Admin" : "Demo Worker";
+
+    let user = await User.findOne({ email: demoEmail });
+
+    if (!user) {
+      const randomPassword = crypto.randomBytes(16).toString("hex");
+      const hashed = await bcrypt.hash(randomPassword, 10);
+
+      user = await User.create({
+        name: demoName,
+        email: demoEmail,
+        password: hashed,
+        role,
+        isDemo: true,
+        lastLogin: new Date()
+      });
+      console.log(`[DEMO ACCOUNT] Created demo ${role} account: ${demoEmail}`);
+    } else {
+      user.lastLogin = new Date();
+      await user.save();
+      console.log(`[DEMO LOGIN] Demo ${role} logged in`);
+    }
+
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "2h" }
+    );
+
+    res.json({
+      token,
+      user,
+      isDemo: true,
+      message: `Demo ${role} access granted! Expires in 2 hours.`
+    });
+
+  } catch (err) {
+    console.error("Demo login error:", err.message);
+    res.status(500).json("Demo login failed.");
   }
 });
 
