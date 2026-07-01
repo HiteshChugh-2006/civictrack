@@ -332,7 +332,7 @@ export default function Login() {
                           <path fill="#34A853" d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.73-2.88c-1.04.7-2.38 1.12-3.96 1.12-3.34 0-5.86-1.81-6.76-4.51L1.66 16.9C3.64 20.79 7.62 23 12 23z"/>
                         </svg>
                         <span>Continue with Google</span>
-                        <span style={{ marginLeft: "auto", fontSize: "11px", color: "#475569", background: "rgba(245,158,11,0.15)", border: "1px solid rgba(245,158,11,0.3)", color: "#f59e0b", borderRadius: "6px", padding: "2px 6px" }}>Setup Required</span>
+                        <span style={{ marginLeft: "auto", fontSize: "11px", background: "rgba(245,158,11,0.15)", border: "1px solid rgba(245,158,11,0.3)", color: "#f59e0b", borderRadius: "6px", padding: "2px 6px" }}>Setup Required</span>
                       </button>
                       <button
                         type="button"
