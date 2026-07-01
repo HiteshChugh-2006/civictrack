@@ -78,6 +78,7 @@ export default function Dashboard() {
     </div>
   );
 
+  return (
     <div style={styles.wrapper}>
       <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} />
       <Navbar setIsOpen={setIsOpen} />

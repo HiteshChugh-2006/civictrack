@@ -18,8 +18,14 @@ export default function Register() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showClientIdPanel, setShowClientIdPanel] = useState(false);
+  const [clientIdInput, setClientIdInput] = useState("");
 
-  const googleClientId = process.env.REACT_APP_GOOGLE_CLIENT_ID || localStorage.getItem("civictrack_google_client_id") || "";
+  const [googleClientId, setGoogleClientId] = useState(
+    process.env.REACT_APP_GOOGLE_CLIENT_ID ||
+    localStorage.getItem("civictrack_google_client_id") ||
+    ""
+  );
 
   // Initialize Google Identity Services
   useEffect(() => {
@@ -53,6 +59,21 @@ export default function Register() {
     return () => clearTimeout(t);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showOTP, googleClientId]);
+
+  const saveClientId = () => {
+    const trimmed = clientIdInput.trim();
+    if (!trimmed || !trimmed.includes(".apps.googleusercontent.com")) {
+      setError("Invalid Client ID — must end with .apps.googleusercontent.com");
+      return;
+    }
+    localStorage.setItem("civictrack_google_client_id", trimmed);
+    setGoogleClientId(trimmed);
+    setShowClientIdPanel(false);
+    setClientIdInput("");
+    setError("");
+    setSuccess("✅ Google Client ID saved! Reloading...");
+    setTimeout(() => window.location.reload(), 700);
+  };
 
   // Real Google Sign-In callback → send idToken to backend
   const handleGoogleCredentialResponse = async (response) => {
@@ -296,32 +317,64 @@ export default function Register() {
               <>
                 {/* Google Sign-In */}
                 <div style={styles.googleSection}>
+                  {/* Client ID Setup Panel */}
+                  {showClientIdPanel && (
+                    <div style={{ background: "rgba(59,130,246,0.06)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: "14px", padding: "16px", marginBottom: "12px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
+                        <span style={{ fontSize: "18px" }}>🔑</span>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: "700", color: "#f0f6ff", fontSize: "13px" }}>Activate Google Sign-In</div>
+                          <div style={{ fontSize: "11px", color: "#64748b" }}>Paste your OAuth 2.0 Client ID below</div>
+                        </div>
+                        <button style={{ background: "none", border: "none", color: "#64748b", fontSize: "16px", cursor: "pointer" }} onClick={() => setShowClientIdPanel(false)}>✕</button>
+                      </div>
+                      <input
+                        className="glass-input"
+                        placeholder="xxxxx.apps.googleusercontent.com"
+                        value={clientIdInput}
+                        onChange={e => setClientIdInput(e.target.value)}
+                        style={{ fontSize: "12px", marginBottom: "8px" }}
+                      />
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        <button
+                          type="button"
+                          style={{ flex: 1, background: "linear-gradient(135deg, #3b82f6, #1d4ed8)", color: "white", border: "none", borderRadius: "8px", padding: "10px", fontSize: "13px", fontWeight: "700", cursor: "pointer", fontFamily: "'Outfit', sans-serif" }}
+                          onClick={saveClientId}
+                        >
+                          ✅ Save & Activate
+                        </button>
+                        <a href="https://console.cloud.google.com/apis/credentials/oauthclient" target="_blank" rel="noreferrer"
+                          style={{ display: "flex", alignItems: "center", padding: "10px 12px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#94a3b8", fontSize: "12px", textDecoration: "none", fontWeight: "600" }}>
+                          🌐 Console
+                        </a>
+                      </div>
+                      <div style={{ fontSize: "11px", color: "#475569", marginTop: "8px", lineHeight: "1.5" }}>
+                        Google Cloud → Credentials → OAuth 2.0 Client ID (Web App) → Authorized Origins: <code style={{ color: "#06b6d4" }}>http://localhost:3000</code>
+                      </div>
+                    </div>
+                  )}
                   {googleClientId ? (
                     <div className="google-btn-wrapper">
                       <div ref={googleBtnRef} style={{ width: "100%" }} />
                     </div>
                   ) : (
-                    <button
-                      type="button"
-                      style={styles.googleFallbackBtn}
-                      onClick={() => {
-                        const id = prompt("Enter your Google Client ID to enable real sign-in:\n(Get it from console.cloud.google.com → APIs & Services → Credentials)");
-                        if (id && id.includes(".apps.googleusercontent.com")) {
-                          localStorage.setItem("civictrack_google_client_id", id);
-                          window.location.reload();
-                        } else if (id) {
-                          alert("That doesn't look like a valid Google Client ID. It should end with .apps.googleusercontent.com");
-                        }
-                      }}
-                    >
-                      <svg style={{ width: "20px", height: "20px", flexShrink: 0 }} viewBox="0 0 24 24">
-                        <path fill="#EA4335" d="M12 5.04c1.66 0 3.2.57 4.38 1.69l3.27-3.27C17.68 1.54 14.98 1 12 1 7.35 1 3.37 3.67 1.39 7.56l3.85 2.99c.9-2.7 3.42-4.51 6.76-4.51z"/>
-                        <path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.36H12v4.51h6.46c-.29 1.48-1.14 2.73-2.4 3.58l3.73 2.88c2.18-2 3.7-4.97 3.7-8.61z"/>
-                        <path fill="#FBBC05" d="M5.24 14.55c-.24-.72-.38-1.5-.38-2.3s.14-1.58.38-2.3L1.39 6.96C.5 8.74 0 10.74 0 12.8s.5 4.06 1.39 5.84l3.85-4.09z"/>
-                        <path fill="#34A853" d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.73-2.88c-1.04.7-2.38 1.12-3.96 1.12-3.34 0-5.86-1.81-6.76-4.51L1.66 16.9C3.64 20.79 7.62 23 12 23z"/>
-                      </svg>
-                      <span>{googleLoading ? "Signing up..." : "Sign up with Google"}</span>
-                    </button>
+                    <>
+                      <button type="button" style={styles.googleFallbackBtn} onClick={() => setShowClientIdPanel(p => !p)}>
+                        <svg style={{ width: "20px", height: "20px", flexShrink: 0 }} viewBox="0 0 24 24">
+                          <path fill="#EA4335" d="M12 5.04c1.66 0 3.2.57 4.38 1.69l3.27-3.27C17.68 1.54 14.98 1 12 1 7.35 1 3.37 3.67 1.39 7.56l3.85 2.99c.9-2.7 3.42-4.51 6.76-4.51z"/>
+                          <path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.36H12v4.51h6.46c-.29 1.48-1.14 2.73-2.4 3.58l3.73 2.88c2.18-2 3.7-4.97 3.7-8.61z"/>
+                          <path fill="#FBBC05" d="M5.24 14.55c-.24-.72-.38-1.5-.38-2.3s.14-1.58.38-2.3L1.39 6.96C.5 8.74 0 10.74 0 12.8s.5 4.06 1.39 5.84l3.85-4.09z"/>
+                          <path fill="#34A853" d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.73-2.88c-1.04.7-2.38 1.12-3.96 1.12-3.34 0-5.86-1.81-6.76-4.51L1.66 16.9C3.64 20.79 7.62 23 12 23z"/>
+                        </svg>
+                        <span>{googleLoading ? "Signing up..." : "Sign up with Google"}</span>
+                        <span style={{ marginLeft: "auto", fontSize: "10px", background: "rgba(245,158,11,0.15)", color: "#f59e0b", border: "1px solid rgba(245,158,11,0.3)", borderRadius: "6px", padding: "2px 6px", fontWeight: "700" }}>SETUP NEEDED</span>
+                      </button>
+                      <button type="button"
+                        style={{ width: "100%", padding: "8px", background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: "8px", color: "#60a5fa", fontSize: "12px", fontWeight: "600", cursor: "pointer", fontFamily: "'Outfit', sans-serif", marginTop: "6px" }}
+                        onClick={() => setShowClientIdPanel(true)}>
+                        🔑 Paste Client ID to activate Google Sign-Up
+                      </button>
+                    </>
                   )}
                   <p style={styles.googleHint}>
                     ✨ Recommended — No password needed
